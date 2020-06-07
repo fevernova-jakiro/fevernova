@@ -99,13 +99,13 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
         Validate.isTrue(bytes.readInt() == 0);
-        this.symbols = SerializationUtils.readIntHashMap(bytes, bytesIn -> new OrderBooks(bytesIn));
+        SerializationUtils.readIntMap(bytes, this.symbols, bytesIn -> new OrderBooks(bytesIn));
     }
 
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(0);
-        SerializationUtils.writeIntHashMap(this.symbols, bytes);
+        SerializationUtils.writeIntMap(this.symbols, bytes);
     }
 }

@@ -1,18 +1,20 @@
 package com.github.fevernova.framework.window;
 
 
+import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
-import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
+
+import java.util.TreeMap;
 
 
 public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    protected IntObjectHashMap<W> windows;
+    protected TreeMap<Integer, W> windows;
 
     protected long span;
 
@@ -36,7 +38,7 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
 
         this.span = span;
         this.windowNum = windowNum;
-        this.windows = new IntObjectHashMap<>(windowNum);
+        this.windows = new TreeMap<>();
         this.windowListener = windowListener;
     }
 
@@ -63,8 +65,8 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
             return true;
         }
 
-        if (this.currentWindowSeq > this.windows.min().getId()) {
-            W w = this.windows.min();
+        W w = this.windows.firstEntry().getValue();
+        if (this.currentWindowSeq > w.getId()) {
             this.windows.remove(w.getId());
             if (this.windowListener != null) {
                 this.windowListener.removeOldWindow(w);
@@ -76,7 +78,7 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
             }
             return true;
         }
-        this.currentWindow = this.windows.max();
+        this.currentWindow = this.windows.lastEntry().getValue();
         this.currentWindowSeq = this.currentWindow.getId();
         return false;
     }
@@ -87,11 +89,7 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        bytes.writeInt(this.windows.size());
-        this.windows.forEachKeyValue((k, v) -> {
-            bytes.writeInt(k);
-            v.writeMarshallable(bytes);
-        });
+        SerializationUtils.writeIntMap(this.windows, bytes);
     }
 
 

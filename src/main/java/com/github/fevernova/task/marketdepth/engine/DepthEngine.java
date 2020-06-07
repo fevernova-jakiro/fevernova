@@ -64,7 +64,7 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
         Validate.isTrue(bytes.readInt() == 0);
-        this.data = SerializationUtils.readIntHashMap(bytes, bytesIn -> {
+        SerializationUtils.readIntMap(bytes, this.data, bytesIn -> {
 
             SymbolDepths symbolDepths = new SymbolDepths();
             symbolDepths.readMarshallable(bytesIn);
@@ -76,6 +76,6 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(0);
-        SerializationUtils.writeIntHashMap(this.data, bytes);
+        SerializationUtils.writeIntMap(this.data, bytes);
     }
 }

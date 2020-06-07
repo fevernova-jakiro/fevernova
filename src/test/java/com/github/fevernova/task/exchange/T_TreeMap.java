@@ -31,4 +31,19 @@ public class T_TreeMap {
         Assert.assertEquals(entry2.getKey().longValue(), 20L);
     }
 
+
+    @Test
+    public void T_treemap2() {
+
+        tree0.put(2L, 2L);
+        tree0.put(4L, 4L);
+        tree0.put(1L, 1L);
+        tree0.put(5L, 5L);
+        tree0.put(3L, 3L);
+
+        System.out.println(tree0.firstKey());
+        System.out.println(tree0.lastKey());
+
+    }
+
 }
