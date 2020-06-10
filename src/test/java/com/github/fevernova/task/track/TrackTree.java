@@ -2,7 +2,10 @@ package com.github.fevernova.task.track;
 
 
 import com.google.common.collect.Maps;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.*;
 
@@ -11,7 +14,11 @@ public class TrackTree {
 
 
     @Getter
-    private final NavigableMap<Long, NavigableMap<Long, List<Long>>> tree = Maps.newTreeMap();
+    private final Map<Long, Order> ordersMap = Maps.newHashMap();
+
+    private final NavigableMap<Long, Map<Long, Order>> highPriceTree = Maps.newTreeMap();
+
+    private final NavigableMap<Long, Map<Long, Order>> lowPriceTree = Maps.newTreeMap();
 
     @Getter
     private long lastPrice;
@@ -20,43 +27,38 @@ public class TrackTree {
     public List<Long> newPrice(long newPrice) {
 
         List<Long> result = new LinkedList<>();
-        if (this.lastPrice > newPrice) {
-            Iterator<Map.Entry<Long, NavigableMap<Long, List<Long>>>> iterator = this.tree.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<Long, NavigableMap<Long, List<Long>>> entry = iterator.next();
-                long delta = entry.getKey() - newPrice;
-                NavigableMap<Long, List<Long>> subTree = entry.getValue();
-                SortedMap<Long, List<Long>> moves = subTree.headMap(delta, true);
-                if (!moves.isEmpty()) {
-                    Iterator<Map.Entry<Long, List<Long>>> entryIterator = moves.entrySet().iterator();
-                    while (entryIterator.hasNext()) {
-                        Map.Entry<Long, List<Long>> item = entryIterator.next();
-                        result.addAll(item.getValue());
-                        entryIterator.remove();
+        if (this.lastPrice < newPrice) {
+            SortedMap<Long, Map<Long, Order>> moves = this.highPriceTree.headMap(newPrice);
+            if (!moves.isEmpty()) {
+                Map<Long, Order> targetOrders = this.highPriceTree.get(newPrice);
+                if (targetOrders == null) {
+                    targetOrders = Maps.newHashMap();
+                    this.highPriceTree.put(newPrice, targetOrders);
+                }
+                Iterator<Map.Entry<Long, Map<Long, Order>>> iterator = moves.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map<Long, Order> tmpOrders = iterator.next().getValue();
+                    for (Map.Entry<Long, Order> entry : tmpOrders.entrySet()) {
+                        Order order = entry.getValue();
+                        targetOrders.put(order.getOrderId(), order);
+                        deleteFromTreeMap(order.getLowPrice(), order.getOrderId(), this.lowPriceTree);
+                        order.setHighPrice(newPrice);
+                        add2TreeMap(order.getLowPrice(), order, this.lowPriceTree);
                     }
-                    if (subTree.isEmpty()) {
-                        iterator.remove();
-                    }
+                    iterator.remove();
                 }
             }
-        } else {
-            SortedMap<Long, NavigableMap<Long, List<Long>>> moves = this.tree.headMap(newPrice);
+        } else if (this.lastPrice > newPrice) {
+            SortedMap<Long, Map<Long, Order>> moves = this.lowPriceTree.tailMap(newPrice, true);
             if (!moves.isEmpty()) {
-                NavigableMap<Long, List<Long>> targetSubTree = this.tree.get(newPrice);
-                if (targetSubTree == null) {
-                    targetSubTree = Maps.newTreeMap();
-                    this.tree.put(newPrice, targetSubTree);
-                }
-                Iterator<Map.Entry<Long, NavigableMap<Long, List<Long>>>> iterator = moves.entrySet().iterator();
+                Iterator<Map.Entry<Long, Map<Long, Order>>> iterator = moves.entrySet().iterator();
                 while (iterator.hasNext()) {
-                    NavigableMap<Long, List<Long>> sourceSubTree = iterator.next().getValue();
-                    for (Map.Entry<Long, List<Long>> entry : sourceSubTree.entrySet()) {
-                        List<Long> orderIds = targetSubTree.get(entry.getKey());
-                        if (orderIds == null) {
-                            orderIds = new LinkedList<>();
-                            targetSubTree.put(entry.getKey(), orderIds);
-                        }
-                        orderIds.addAll(entry.getValue());
+                    Map<Long, Order> tmpOrders = iterator.next().getValue();
+                    for (Map.Entry<Long, Order> entry : tmpOrders.entrySet()) {
+                        Order order = entry.getValue();
+                        result.add(order.getOrderId());
+                        deleteFromTreeMap(order.getHighPrice(), order.getOrderId(), this.highPriceTree);
+                        this.ordersMap.remove(order.getOrderId());
                     }
                     iterator.remove();
                 }
@@ -67,40 +69,51 @@ public class TrackTree {
     }
 
 
-    public void addOrder(long orderId, long deltaPrice) {
+    public boolean addOrder(long orderId, long deltaPrice) {
 
-        NavigableMap<Long, List<Long>> subTree = this.tree.get(this.lastPrice);
-        List<Long> orderIds = null;
-        if (subTree != null) {
-            orderIds = subTree.get(deltaPrice);
-        } else {
-            subTree = Maps.newTreeMap();
-            this.tree.put(this.lastPrice, subTree);
+        Order order = Order.builder().highPrice(this.lastPrice).deltaPrice(deltaPrice).orderId(orderId).build();
+        Order old = this.ordersMap.putIfAbsent(order.getOrderId(), order);
+        if (old != null) {
+            return false;
         }
-        if (orderIds == null) {
-            orderIds = new LinkedList<>();
-            subTree.put(deltaPrice, orderIds);
-        }
-        orderIds.add(orderId);
+
+        add2TreeMap(order.getHighPrice(), order, this.highPriceTree);
+        add2TreeMap(order.getLowPrice(), order, this.lowPriceTree);
+        return true;
     }
 
 
-    public void cancelOrder(long orderId, long deltaPrice) {
+    public boolean cancelOrder(long orderId) {
 
-        Iterator<NavigableMap<Long, List<Long>>> iterator = this.tree.values().iterator();
-        while (iterator.hasNext()) {
-            NavigableMap<Long, List<Long>> subTree = iterator.next();
-            List<Long> orderIds = subTree.get(deltaPrice);
-            if (orderIds != null && orderIds.size() > 0) {
-                if (orderIds.remove(orderId)) {
-                    if (orderIds.isEmpty()) {
-                        subTree.remove(deltaPrice);
-                        if (subTree.isEmpty()) {
-                            iterator.remove();
-                        }
-                    }
-                    break;
-                }
+        Order order = this.ordersMap.remove(orderId);
+        if (order != null) {
+            deleteFromTreeMap(order.getHighPrice(), orderId, this.highPriceTree);
+            deleteFromTreeMap(order.getLowPrice(), orderId, this.lowPriceTree);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    private void add2TreeMap(long price, Order order, NavigableMap<Long, Map<Long, Order>> tree) {
+
+        Map<Long, Order> map = tree.get(price);
+        if (map == null) {
+            map = Maps.newHashMap();
+            tree.put(price, map);
+        }
+        map.put(order.getOrderId(), order);
+    }
+
+
+    private void deleteFromTreeMap(long price, long orderId, NavigableMap<Long, Map<Long, Order>> tree) {
+
+        Map<Long, Order> map = tree.get(price);
+        if (map != null) {
+            map.remove(orderId);
+            if (map.isEmpty()) {
+                tree.remove(price);
             }
         }
     }
@@ -108,7 +121,30 @@ public class TrackTree {
 
     public void clear() {
 
-        this.tree.clear();
+        this.ordersMap.clear();
+        this.highPriceTree.clear();
+        this.lowPriceTree.clear();
+    }
+
+
+    @Getter
+    @Builder
+    @ToString
+    static class Order {
+
+
+        @Setter
+        private long highPrice;
+
+        private long deltaPrice;
+
+        private long orderId;
+
+
+        public long getLowPrice() {
+
+            return this.highPrice - this.deltaPrice;
+        }
     }
 
 }

@@ -36,6 +36,7 @@ public class T_TrackTree {
 
         priceMove(95);
         priceMove(120);
+        priceMove(120);
         priceMove(100);
         priceMove(98);
         priceMove(96);
@@ -57,6 +58,6 @@ public class T_TrackTree {
 
     private void printTree() {
 
-        System.out.println("Tree : " + this.trackTree.getTree());
+        System.out.println("Tree : " + this.trackTree.getOrdersMap());
     }
 }
