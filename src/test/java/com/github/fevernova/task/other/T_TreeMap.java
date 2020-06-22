@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange;
+package com.github.fevernova.task.other;
 
 
 import com.google.common.collect.Maps;

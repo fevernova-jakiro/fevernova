@@ -1,4 +1,4 @@
-package com.github.fevernova.task.candleex;
+package com.github.fevernova.task.other.candleex;
 
 
 import com.github.fevernova.framework.common.Util;

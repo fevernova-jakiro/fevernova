@@ -1,4 +1,4 @@
-package com.github.fevernova.task.track;
+package com.github.fevernova.task.other.track;
 
 
 import com.google.common.collect.Maps;
