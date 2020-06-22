@@ -85,9 +85,9 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
 
     private boolean needDump(long now) {
 
-        if (now - this.lastDumpTime >= 60 * 1000L) {
+        if (now - this.lastDumpTime >= 30 * 1000L) {
             return true;
-        } else if (this.update && now - this.lastDumpTime >= 1000L) {
+        } else if (this.update && now - this.lastDumpTime >= 500L) {
             return true;
         }
         return false;

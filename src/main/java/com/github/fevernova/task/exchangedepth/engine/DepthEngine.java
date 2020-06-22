@@ -26,6 +26,8 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     private Map<Integer, SymbolDepths> data = Maps.newHashMap();
 
+    private SymbolDepths lastSymbolDepths;
+
     private int maxDepthSize;
 
     private long interval;
@@ -43,12 +45,15 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     public void handle(OrderMatch match, long now) {
 
-        SymbolDepths symbolDepths = this.data.get(match.getSymbolId());
-        if (symbolDepths == null) {
-            symbolDepths = new SymbolDepths(match.getSymbolId(), this.maxDepthSize);
-            this.data.put(match.getSymbolId(), symbolDepths);
+        int symbolId = match.getSymbolId();
+        if (this.lastSymbolDepths == null || this.lastSymbolDepths.getSymbolId() != symbolId) {
+            this.lastSymbolDepths = this.data.get(symbolId);
+            if (this.lastSymbolDepths == null) {
+                this.lastSymbolDepths = new SymbolDepths(symbolId, this.maxDepthSize);
+                this.data.put(symbolId, this.lastSymbolDepths);
+            }
         }
-        symbolDepths.handle(match, this.provider, now);
+        this.lastSymbolDepths.handle(match, this.provider, now);
     }
 
 

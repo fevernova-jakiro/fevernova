@@ -31,7 +31,7 @@ import java.util.List;
 public class JobParser extends AbstractParser<Integer, OrderMatch> implements BarrierCoordinatorListener {
 
 
-    protected ICheckPointSaver<MapCheckPoint> checkpoints;
+    protected ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
 
     private OrderBooksEngine matchEngine;
 
@@ -41,8 +41,6 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.checkpoints = new CheckPointSaver<>();
-
         TaskContext matchEngineContext =
                 new TaskContext(OrderBooksEngine.CONS_NAME, taskContext.getSubProperties(OrderBooksEngine.CONS_NAME.toLowerCase() + "."));
         this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);

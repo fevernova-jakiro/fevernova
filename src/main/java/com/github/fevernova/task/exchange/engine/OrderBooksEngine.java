@@ -86,13 +86,12 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
         if (this.lastOrderBooks != null && this.lastOrderBooks.getSymbolId() == symbolId) {
             return this.lastOrderBooks;
         }
-        OrderBooks orderBooks = this.symbols.get(symbolId);
-        if (orderBooks == null) {
-            orderBooks = new OrderBooks(symbolId);
-            this.symbols.put(symbolId, orderBooks);
-            this.lastOrderBooks = orderBooks;
+        this.lastOrderBooks = this.symbols.get(symbolId);
+        if (this.lastOrderBooks == null) {
+            this.lastOrderBooks = new OrderBooks(symbolId);
+            this.symbols.put(symbolId, this.lastOrderBooks);
         }
-        return orderBooks;
+        return this.lastOrderBooks;
     }
 
 
