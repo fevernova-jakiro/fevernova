@@ -1,11 +1,11 @@
-package com.github.fevernova.task.marketdepth;
+package com.github.fevernova.task.exchangedepth;
 
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractSink;
-import com.github.fevernova.task.marketdepth.data.DepthResult;
+import com.github.fevernova.task.exchangedepth.data.DepthResult;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;

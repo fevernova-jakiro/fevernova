@@ -1,4 +1,4 @@
-package com.github.fevernova.task.marketdepth;
+package com.github.fevernova.task.exchangedepth;
 
 
 import com.github.fevernova.framework.common.Constants;
@@ -12,7 +12,7 @@ import com.github.fevernova.framework.task.BaseTask;
 import com.github.fevernova.framework.task.TaskTopology;
 import com.github.fevernova.io.kafka.data.KafkaDataFactory;
 import com.github.fevernova.task.exchange.JobSource;
-import com.github.fevernova.task.marketdepth.data.DepthResultFactory;
+import com.github.fevernova.task.exchangedepth.data.DepthResultFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

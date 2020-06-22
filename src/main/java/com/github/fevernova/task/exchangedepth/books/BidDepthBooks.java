@@ -1,4 +1,4 @@
-package com.github.fevernova.task.marketdepth.books;
+package com.github.fevernova.task.exchangedepth.books;
 
 
 import com.google.common.collect.Maps;

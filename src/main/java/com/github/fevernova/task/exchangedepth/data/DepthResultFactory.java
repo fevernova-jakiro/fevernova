@@ -1,4 +1,4 @@
-package com.github.fevernova.task.marketdepth.data;
+package com.github.fevernova.task.exchangedepth.data;
 
 
 import com.github.fevernova.framework.common.data.Data;

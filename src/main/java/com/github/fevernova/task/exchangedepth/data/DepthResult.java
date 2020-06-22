@@ -1,8 +1,8 @@
-package com.github.fevernova.task.marketdepth.data;
+package com.github.fevernova.task.exchangedepth.data;
 
 
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.task.marketdepth.engine.SymbolDepths;
+import com.github.fevernova.task.exchangedepth.engine.SymbolDepths;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

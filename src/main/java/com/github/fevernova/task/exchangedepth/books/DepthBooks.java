@@ -1,7 +1,7 @@
-package com.github.fevernova.task.marketdepth.books;
+package com.github.fevernova.task.exchangedepth.books;
 
 
-import com.github.fevernova.task.marketdepth.data.Depth;
+import com.github.fevernova.task.exchangedepth.data.Depth;
 import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;

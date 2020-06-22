@@ -1,4 +1,4 @@
-package com.github.fevernova.task.marketdepth;
+package com.github.fevernova.task.exchangedepth;
 
 
 import com.alibaba.fastjson.JSONObject;
@@ -20,8 +20,8 @@ import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
-import com.github.fevernova.task.marketdepth.data.DepthResult;
-import com.github.fevernova.task.marketdepth.engine.DepthEngine;
+import com.github.fevernova.task.exchangedepth.data.DepthResult;
+import com.github.fevernova.task.exchangedepth.engine.DepthEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 

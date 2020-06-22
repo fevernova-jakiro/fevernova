@@ -1,4 +1,4 @@
-package com.github.fevernova.task.marketdepth.engine;
+package com.github.fevernova.task.exchangedepth.engine;
 
 
 import com.github.fevernova.framework.common.Util;
@@ -7,10 +7,10 @@ import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderPart;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
-import com.github.fevernova.task.marketdepth.books.AskDepthBooks;
-import com.github.fevernova.task.marketdepth.books.BidDepthBooks;
-import com.github.fevernova.task.marketdepth.books.DepthBooks;
-import com.github.fevernova.task.marketdepth.data.DepthResult;
+import com.github.fevernova.task.exchangedepth.books.AskDepthBooks;
+import com.github.fevernova.task.exchangedepth.books.BidDepthBooks;
+import com.github.fevernova.task.exchangedepth.books.DepthBooks;
+import com.github.fevernova.task.exchangedepth.data.DepthResult;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.openhft.chronicle.bytes.BytesIn;
