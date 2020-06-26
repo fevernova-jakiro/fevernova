@@ -75,6 +75,7 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
             DepthResult depthResult = provider.feedOne(this.symbolId);
             depthResult.setSymbolId(this.symbolId);
             depthResult.setTimestamp(now);
+            depthResult.setLastSequence(this.lastSequence);
             depthResult.dump(this, this.maxDepthSize);
             provider.push();
             this.update = false;

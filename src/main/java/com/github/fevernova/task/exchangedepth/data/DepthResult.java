@@ -18,6 +18,8 @@ public class DepthResult implements Data {
 
     private long timestamp;
 
+    private long lastSequence;
+
     private DepthGroup bidGroup;
 
     private DepthGroup askGroup;
