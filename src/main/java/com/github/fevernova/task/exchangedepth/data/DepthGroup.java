@@ -15,15 +15,12 @@ public class DepthGroup {
 
     private long[] size;
 
-    private int[] orderCount;
-
 
     public DepthGroup(DepthBooks books, int maxDepthSize) {
 
         int size = Math.min(maxDepthSize, books.getPriceTree().size());
         this.price = new long[size];
         this.size = new long[size];
-        this.orderCount = new int[size];
         int cursor = 0;
         for (Map.Entry<Long, Depth> entry : books.getPriceTree().entrySet()) {
             if (cursor == size) {
@@ -31,7 +28,6 @@ public class DepthGroup {
             }
             this.price[cursor] = entry.getKey();
             this.size[cursor] = entry.getValue().getSize();
-            this.orderCount[cursor] = entry.getValue().getCount();
             cursor++;
         }
     }

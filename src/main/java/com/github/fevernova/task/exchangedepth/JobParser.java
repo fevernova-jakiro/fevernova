@@ -46,7 +46,7 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(DepthEngine.CONS_NAME.toLowerCase()).build();
-        int maxDepthSize = taskContext.getInteger("maxdepthsize", 200);
+        int maxDepthSize = taskContext.getInteger("maxdepthsize", 500);
         long interval = taskContext.getLong("interval", 1000L);
         this.depthEngine = new DepthEngine(maxDepthSize, interval, this);
     }
