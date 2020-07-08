@@ -22,8 +22,6 @@ public final class OrderArray implements WriteBytesMarshallable {
 
     private long price;
 
-    private long depthOnlySize;
-
     private long size;
 
     @Setter
@@ -39,7 +37,6 @@ public final class OrderArray implements WriteBytesMarshallable {
             Order order = new Order(bytes);
             this.queue.offer(order);
             this.size += order.getRemainSize();
-            this.depthOnlySize += (OrderType.DEPTHONLY == order.getOrderType() ? order.getRemainSize() : 0);
         }
     }
 
@@ -52,34 +49,10 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    private static boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
-                                                DataProvider<Integer, OrderMatch> provider) {
-
-        if (OrderType.DEPTHONLY != order.getOrderType()) {
-            return false;
-        }
-
-        orderArray.findAndRemoveOrder(order.getOrderId());
-        orderArray.depthOnlySize -= order.getRemainSize();
-
-        OrderMatch depthOnlyMatch = provider.feedOne(symbolId);
-        depthOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);
-        provider.push();
-        return true;
-    }
-
-
-    public long getSizeWithoutDepthOnly() {
-
-        return this.size - this.depthOnlySize;
-    }
-
-
     public void addOrder(Order order) {
 
         this.queue.offer(order);
         this.size += order.getRemainSize();
-        this.depthOnlySize += (OrderType.DEPTHONLY == order.getOrderType() ? order.getRemainSize() : 0);
     }
 
 
@@ -100,11 +73,6 @@ public final class OrderArray implements WriteBytesMarshallable {
         do {
             Order thisOrder = this.queue.peek();
             Order thatOrder = that.queue.peek();
-
-            if (cancelDepthOnlyOrder(sequence, symbolId, timestamp, thisOrder, this, provider)
-                || cancelDepthOnlyOrder(sequence, symbolId, timestamp, thatOrder, that, provider)) {
-                return;
-            }
 
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
             thisOrder.decrement(delta);

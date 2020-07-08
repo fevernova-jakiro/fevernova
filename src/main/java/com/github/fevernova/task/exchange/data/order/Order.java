@@ -35,7 +35,7 @@ public final class Order extends LinkedObject<Order> implements WriteBytesMarsha
 
         this.orderId = bytes.readLong();
         this.userId = bytes.readLong();
-        this.orderType = OrderType.of(bytes.readByte());
+        this.orderType = OrderType.GTC;
         this.remainSize = bytes.readLong();
         this.filledSize = bytes.readLong();
         this.version = bytes.readInt();
@@ -77,7 +77,6 @@ public final class Order extends LinkedObject<Order> implements WriteBytesMarsha
 
         bytes.writeLong(this.orderId);
         bytes.writeLong(this.userId);
-        bytes.writeByte(this.orderType.code);
         bytes.writeLong(this.remainSize);
         bytes.writeLong(this.filledSize);
         bytes.writeInt(this.version);
