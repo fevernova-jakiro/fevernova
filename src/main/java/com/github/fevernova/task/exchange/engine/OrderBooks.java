@@ -14,12 +14,14 @@ import com.github.fevernova.task.exchange.data.uniq.UniqIdFilter;
 import com.github.fevernova.task.exchange.engine.struct.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 
 @Getter
+@Slf4j
 public final class OrderBooks implements WriteBytesMarshallable {
 
 
@@ -69,6 +71,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     private void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, boolean withUniq, LinkedQueue<ConditionOrder> queue) {
 
         if (withUniq && !this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
+            log.error("place duplicate orderId : {} .", orderCommand.getOrderId());
             return;
         }
 
@@ -126,7 +129,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
     public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
-        books.cancel(orderCommand, provider, this.sequence, ResultCode.CANCEL);
+        if (!books.cancel(orderCommand, provider, this.sequence, ResultCode.CANCEL)) {
+            command2result(orderCommand, provider, ResultCode.CANCEL_NOT_FOUND);
+        }
     }
 
 

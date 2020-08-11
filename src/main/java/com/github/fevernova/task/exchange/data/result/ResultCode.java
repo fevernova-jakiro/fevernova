@@ -9,6 +9,7 @@ public enum ResultCode {
     CANCEL_IOC(21),
     CANCEL_FOK(22),
     CANCEL_POSTONLY(23),
+    CANCEL_NOTFOUND(24),
 
     MATCH(30),
 

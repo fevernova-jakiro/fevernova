@@ -94,20 +94,21 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence, ResultCode resultCode) {
+    public boolean cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence, ResultCode resultCode) {
 
         OrderArray oa = this.price == orderCommand.getPrice() ? this.orderArray : this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
-            return;
+            return false;
         }
         Order order = oa.findAndRemoveOrder(orderCommand.getOrderId());
         if (order == null) {
-            return;
+            return false;
         }
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
         orderMatch.from(sequence, orderCommand, order, oa, resultCode);
         provider.push();
         adjustByOrderArray(oa);
+        return true;
     }
 
 

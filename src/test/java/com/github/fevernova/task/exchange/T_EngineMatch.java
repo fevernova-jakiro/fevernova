@@ -143,35 +143,6 @@ public class T_EngineMatch extends T_Engine {
 
 
     @Test
-    public void T_placeDepthOnly() {
-
-        OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setPrice(10);
-        cmd1.setSize(100);
-        parser(cmd1);
-        check(1, 0, 1, 0L);
-
-        OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.DEPTHONLY, OrderMode.SIMPLE);
-        cmd2.setPrice(10);
-        cmd2.setSize(50);
-        parser(cmd2);
-        check(1, 0, 3, 10L);
-
-        OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.DEPTHONLY, OrderMode.SIMPLE);
-        cmd3.setPrice(9);
-        cmd3.setSize(50);
-        parser(cmd3);
-        check(2, 0, 4, 10L);
-
-        OrderCommand cmd4 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        cmd4.setPrice(8);
-        cmd4.setSize(150);
-        parser(cmd4);
-        check(0, 1, 7, 9L);
-    }
-
-
-    @Test
     public void T_condition2Simple() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
