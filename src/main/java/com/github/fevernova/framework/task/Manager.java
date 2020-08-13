@@ -100,7 +100,7 @@ public class Manager extends ContextObject {
 
         log.info("Manager execute . ");
         this.taskTopology.execute();
-        this.scheduler.createJob(BarrierGeneratorJob.class, Schedulerd.SCHEDULER_BARRIER, 20, Maps.newHashMap());
+        this.scheduler.createJob(BarrierGeneratorJob.class, Schedulerd.SCHEDULER_BARRIER, this.barrierService.getInterval(), Maps.newHashMap());
         this.scheduler.createJob(MonitorJob.class, Schedulerd.SCHEDULER_MONITOR, 60, Maps.newHashMap());
         this.scheduler.start();
     }

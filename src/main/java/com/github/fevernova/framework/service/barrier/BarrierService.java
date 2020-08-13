@@ -35,6 +35,9 @@ public class BarrierService extends ContextObject implements BarrierServiceCallB
     @Getter
     private final boolean exactlyOnce;
 
+    @Getter
+    private final int interval;
+
     private final AtomicLong barrierSequence = new AtomicLong(0);
 
     private final ConcurrentSkipListMap<Long, Pair<BarrierData, AtomicInteger>> unCompletedBarriers = new ConcurrentSkipListMap();
@@ -54,6 +57,7 @@ public class BarrierService extends ContextObject implements BarrierServiceCallB
 
         super(globalContext, taskContext);
         this.exactlyOnce = taskContext.getBoolean("exactlyonce", false);
+        this.interval = taskContext.getInteger("interval", 20);
     }
 
 

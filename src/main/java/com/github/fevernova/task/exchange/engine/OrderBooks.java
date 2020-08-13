@@ -130,7 +130,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         if (!books.cancel(orderCommand, provider, this.sequence, ResultCode.CANCEL)) {
-            command2result(orderCommand, provider, ResultCode.CANCEL_NOT_FOUND);
+            command2result(orderCommand, provider, ResultCode.CANCEL_NOTFOUND);
         }
     }
 
