@@ -6,6 +6,9 @@ import com.github.fevernova.task.exchangedepth.engine.SymbolDepths;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.Validate;
+
+import java.nio.ByteBuffer;
 
 
 @Getter
@@ -25,6 +28,13 @@ public class DepthResult implements Data {
     private DepthGroup askGroup;
 
 
+    public void dump(SymbolDepths symbolDepths, int maxDepthSize) {
+
+        this.bidGroup = new DepthGroup(symbolDepths.getBids(), maxDepthSize);
+        this.askGroup = new DepthGroup(symbolDepths.getAsks(), maxDepthSize);
+    }
+
+
     @Override public void clearData() {
 
         this.symbolId = 0;
@@ -36,13 +46,28 @@ public class DepthResult implements Data {
 
     @Override public byte[] getBytes() {
 
-        return new byte[0];
+        ByteBuffer byteBuffer = ByteBuffer.allocate(21 + this.bidGroup.countBytes() + this.askGroup.countBytes());
+        byteBuffer.put((byte) 0);
+        byteBuffer.putInt(this.symbolId);
+        byteBuffer.putLong(this.timestamp);
+        byteBuffer.putLong(this.lastSequence);
+        this.bidGroup.getBytes(byteBuffer);
+        this.askGroup.getBytes(byteBuffer);
+        return byteBuffer.array();
     }
 
 
-    public void dump(SymbolDepths symbolDepths, int maxDepthSize) {
+    public void from(byte[] bytes) {
 
-        this.bidGroup = new DepthGroup(symbolDepths.getBids(), maxDepthSize);
-        this.askGroup = new DepthGroup(symbolDepths.getAsks(), maxDepthSize);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        byte version = byteBuffer.get();
+        Validate.isTrue(version == 0);
+        this.symbolId = byteBuffer.getInt();
+        this.timestamp = byteBuffer.getLong();
+        this.lastSequence = byteBuffer.getLong();
+        this.bidGroup = new DepthGroup();
+        this.bidGroup.from(byteBuffer);
+        this.askGroup = new DepthGroup();
+        this.askGroup.from(byteBuffer);
     }
 }

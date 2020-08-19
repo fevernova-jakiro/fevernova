@@ -3,32 +3,64 @@ package com.github.fevernova.task.exchangedepth.data;
 
 import com.github.fevernova.task.exchangedepth.books.DepthBooks;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 
 @Getter
+@NoArgsConstructor
 public class DepthGroup {
 
 
     private long[] price;
 
-    private long[] size;
+    private long[] volume;
 
 
     public DepthGroup(DepthBooks books, int maxDepthSize) {
 
-        int size = Math.min(maxDepthSize, books.getPriceTree().size());
-        this.price = new long[size];
-        this.size = new long[size];
+        int arraySize = Math.min(maxDepthSize, books.getPriceTree().size());
+        this.price = new long[arraySize];
+        this.volume = new long[arraySize];
         int cursor = 0;
         for (Map.Entry<Long, Depth> entry : books.getPriceTree().entrySet()) {
-            if (cursor == size) {
+            if (cursor == arraySize) {
                 break;
             }
             this.price[cursor] = entry.getKey();
-            this.size[cursor] = entry.getValue().getSize();
+            this.volume[cursor] = entry.getValue().getSize();
             cursor++;
         }
+    }
+
+
+    public void from(ByteBuffer byteBuffer) {
+
+        int arraySize = byteBuffer.getInt();
+        this.price = new long[arraySize];
+        this.volume = new long[arraySize];
+        for (int i = 0; i < arraySize; i++) {
+            this.price[i] = byteBuffer.getLong();
+            this.volume[i] = byteBuffer.getLong();
+        }
+    }
+
+
+    public void getBytes(ByteBuffer byteBuffer) {
+
+        int arraySize = this.price.length;
+        byteBuffer.putInt(arraySize);
+        for (int i = 0; i < arraySize; i++) {
+            byteBuffer.putLong(this.price[i]);
+            byteBuffer.putLong(this.volume[i]);
+        }
+    }
+
+
+    public int countBytes() {
+
+        return this.price.length * 16;
     }
 }
