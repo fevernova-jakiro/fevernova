@@ -30,7 +30,7 @@ public class DepthGroup {
                 break;
             }
             this.price[cursor] = entry.getKey();
-            this.volume[cursor] = entry.getValue().getSize();
+            this.volume[cursor] = entry.getValue().getVolume();
             cursor++;
         }
     }

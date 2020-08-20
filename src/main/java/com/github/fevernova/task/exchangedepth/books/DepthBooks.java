@@ -30,9 +30,9 @@ public abstract class DepthBooks implements WriteBytesMarshallable, ReadBytesMar
     }
 
 
-    public void handle(long price, long size, int count) {
+    public void handle(long price, long volume, int count) {
 
-        if (size == 0) {
+        if (volume == 0) {
             this.priceTree.remove(price);
             if (this.cachePrice == price) {
                 Map.Entry<Long, Depth> entry = this.priceTree.ceilingEntry(price);
@@ -44,7 +44,7 @@ public abstract class DepthBooks implements WriteBytesMarshallable, ReadBytesMar
 
         if (newEdgePrice(price)) {
             Depth depth = new Depth();
-            depth.setSize(size);
+            depth.setVolume(volume);
             depth.setCount(count);
             this.priceTree.put(price, depth);
             this.cachePrice = price;
@@ -53,13 +53,13 @@ public abstract class DepthBooks implements WriteBytesMarshallable, ReadBytesMar
         }
 
         if (this.cachePrice == price) {
-            this.cacheDepth.setSize(size);
+            this.cacheDepth.setVolume(volume);
             this.cacheDepth.setCount(count);
             return;
         }
 
         Depth depth = new Depth();
-        depth.setSize(size);
+        depth.setVolume(volume);
         depth.setCount(count);
         this.priceTree.put(price, depth);
     }

@@ -15,21 +15,21 @@ import net.openhft.chronicle.core.io.IORuntimeException;
 public class Depth implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    private long size;
+    private long volume;
 
     private int count;
 
 
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
-        this.size = bytes.readLong();
+        this.volume = bytes.readLong();
         this.count = bytes.readInt();
     }
 
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        bytes.writeLong(this.size);
+        bytes.writeLong(this.volume);
         bytes.writeInt(this.count);
     }
 }
