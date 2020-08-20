@@ -49,11 +49,11 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
         if (this.lastSymbolDepths == null || this.lastSymbolDepths.getSymbolId() != symbolId) {
             this.lastSymbolDepths = this.data.get(symbolId);
             if (this.lastSymbolDepths == null) {
-                this.lastSymbolDepths = new SymbolDepths(symbolId, this.maxDepthSize);
+                this.lastSymbolDepths = new SymbolDepths(symbolId);
                 this.data.put(symbolId, this.lastSymbolDepths);
             }
         }
-        this.lastSymbolDepths.handle(match, this.provider, now);
+        this.lastSymbolDepths.handle(match, this.provider, now, this.maxDepthSize);
     }
 
 
@@ -61,8 +61,8 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
 
         if (now - this.lastScanTime >= this.interval) {
             this.lastScanTime = now;
+            this.data.forEach((id, symbolDepths) -> symbolDepths.scan(provider, now, this.maxDepthSize));
         }
-        this.data.forEach((id, symbolDepths) -> symbolDepths.scan(provider, now));
     }
 
 

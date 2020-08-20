@@ -68,7 +68,7 @@ public class OrderMatch implements Data {
     }
 
 
-    //FOK CANCEL or POSTONLY CANCEL or HEARTBEAT
+    //FOK CANCEL or POSTONLY CANCEL or CANCEL_NOTFOUND or HEARTBEAT
     public void from(Sequence sequence, OrderCommand orderCommand, ResultCode resultCode) {
 
         this.symbolId = orderCommand.getSymbolId();

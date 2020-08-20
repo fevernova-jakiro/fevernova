@@ -2,6 +2,7 @@ package com.github.fevernova.task.exchangedepth;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -56,6 +57,9 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
 
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(this.orderMatch.toString());
+        }
         long now = Util.nowMS();
         if (this.orderMatch.getOrderPart1().getOrderPriceDepthSize() >= 0L) {
             this.depthEngine.handle(this.orderMatch, now);

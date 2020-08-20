@@ -37,6 +37,8 @@ public enum ResultCode {
                 return CANCEL_FOK;
             case 23:
                 return CANCEL_POSTONLY;
+            case 24:
+                return CANCEL_NOTFOUND;
             case 30:
                 return MATCH;
             case 40:

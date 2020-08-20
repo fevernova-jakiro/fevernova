@@ -27,6 +27,7 @@ public abstract class DepthBooks implements WriteBytesMarshallable, ReadBytesMar
     public DepthBooks(NavigableMap<Long, Depth> priceTree) {
 
         this.priceTree = priceTree;
+        this.cachePrice = defaultPrice();
     }
 
 

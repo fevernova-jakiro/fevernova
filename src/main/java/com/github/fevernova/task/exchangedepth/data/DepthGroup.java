@@ -4,6 +4,7 @@ package com.github.fevernova.task.exchangedepth.data;
 import com.github.fevernova.task.exchangedepth.books.DepthBooks;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.Map;
 
 @Getter
 @NoArgsConstructor
+@ToString
 public class DepthGroup {
 
 
