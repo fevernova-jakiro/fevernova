@@ -63,6 +63,6 @@ public class DepthGroup {
 
     public int countBytes() {
 
-        return this.price.length * 16;
+        return 4 + this.price.length * 16;
     }
 }
