@@ -1,7 +1,6 @@
 package com.github.fevernova.task.exchangedepth;
 
 
-import com.alibaba.fastjson.JSON;
 import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -46,7 +45,7 @@ public class JobSink extends AbstractSink {
 
         DepthResult depthResult = (DepthResult) event;
         if (LogProxy.LOG_DATA.isTraceEnabled()) {
-            LogProxy.LOG_DATA.trace(JSON.toJSONString(depthResult));
+            LogProxy.LOG_DATA.trace(depthResult.toString());
         }
         this.currentTopic.publish(depthResult.getBytes());
     }
