@@ -52,7 +52,7 @@ public class DepthGroup {
 
     public void getBytes(ByteBuffer byteBuffer) {
 
-        int arraySize = this.price.length;
+        int arraySize = this.price == null ? 0 : this.price.length;
         byteBuffer.putInt(arraySize);
         for (int i = 0; i < arraySize; i++) {
             byteBuffer.putLong(this.price[i]);
@@ -63,6 +63,9 @@ public class DepthGroup {
 
     public int countBytes() {
 
+        if (this.price == null) {
+            return 4;
+        }
         return 4 + this.price.length * 16;
     }
 }
