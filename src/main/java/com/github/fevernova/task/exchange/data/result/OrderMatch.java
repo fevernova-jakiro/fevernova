@@ -68,7 +68,7 @@ public class OrderMatch implements Data {
     }
 
 
-    //FOK CANCEL or POSTONLY CANCEL or HEARTBEAT
+    //FOK CANCEL or POSTONLY CANCEL or CANCEL_NOTFOUND or HEARTBEAT
     public void from(Sequence sequence, OrderCommand orderCommand, ResultCode resultCode) {
 
         this.symbolId = orderCommand.getSymbolId();
@@ -87,31 +87,6 @@ public class OrderMatch implements Data {
         this.orderPart1.setOrderTotalSize(orderCommand.getSize());
         this.orderPart1.setOrderAccFilledSize(0L);
         this.orderPart1.setOrderVersion(1);
-
-        this.orderPart2.clearData();
-        this.matchPart.clearData();
-    }
-
-
-    //CANCEL BY DEPTH ONLY
-    public void from(Sequence sequence, int symbolId, Order order, OrderArray orderArray, long timestamp) {
-
-        this.symbolId = symbolId;
-        this.timestamp = timestamp;
-        this.orderMode = OrderMode.SIMPLE;
-        this.resultCode = ResultCode.CANCEL_DEPTHONLY;
-
-        this.orderPart1.setSequence(sequence.getAndIncrement());
-        this.orderPart1.setOrderId(order.getOrderId());
-        this.orderPart1.setUserId(order.getUserId());
-        this.orderPart1.setOrderAction(orderArray.getOrderAction());
-        this.orderPart1.setOrderType(order.getOrderType());
-        this.orderPart1.setOrderPrice(orderArray.getPrice());
-        this.orderPart1.setOrderPriceDepthSize(orderArray.getSize());
-        this.orderPart1.setOrderPriceOrderCount(orderArray.getQueue().size());
-        this.orderPart1.setOrderTotalSize(order.getRemainSize() + order.getFilledSize());
-        this.orderPart1.setOrderAccFilledSize(order.getFilledSize());
-        this.orderPart1.setOrderVersion(order.getVersion());
 
         this.orderPart2.clearData();
         this.matchPart.clearData();

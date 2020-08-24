@@ -51,7 +51,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         NavigableMap<Long, OrderArray> subMap = this.priceTree.subMap(this.price, true, orderCommand.getPrice(), true);
         long acc = 0L;
         for (Map.Entry<Long, OrderArray> entry : subMap.entrySet()) {
-            acc += entry.getValue().getSizeWithoutDepthOnly();
+            acc += entry.getValue().getSize();
             if (acc >= orderCommand.getSize()) {
                 return true;
             }
@@ -94,20 +94,21 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence, ResultCode resultCode) {
+    public boolean cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence, ResultCode resultCode) {
 
         OrderArray oa = this.price == orderCommand.getPrice() ? this.orderArray : this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
-            return;
+            return false;
         }
         Order order = oa.findAndRemoveOrder(orderCommand.getOrderId());
         if (order == null) {
-            return;
+            return false;
         }
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
         orderMatch.from(sequence, orderCommand, order, oa, resultCode);
         provider.push();
         adjustByOrderArray(oa);
+        return true;
     }
 
 

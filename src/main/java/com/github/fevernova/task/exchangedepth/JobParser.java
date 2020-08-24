@@ -2,6 +2,7 @@ package com.github.fevernova.task.exchangedepth;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -46,7 +47,7 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(DepthEngine.CONS_NAME.toLowerCase()).build();
-        int maxDepthSize = taskContext.getInteger("maxdepthsize", 200);
+        int maxDepthSize = taskContext.getInteger("maxdepthsize", 500);
         long interval = taskContext.getLong("interval", 1000L);
         this.depthEngine = new DepthEngine(maxDepthSize, interval, this);
     }
@@ -56,6 +57,9 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
 
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(this.orderMatch.toString());
+        }
         long now = Util.nowMS();
         if (this.orderMatch.getOrderPart1().getOrderPriceDepthSize() >= 0L) {
             this.depthEngine.handle(this.orderMatch, now);

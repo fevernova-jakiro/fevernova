@@ -27,27 +27,24 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
 
     private int symbolId;
 
-    private int maxDepthSize;
-
     private DepthBooks bids = new BidDepthBooks();
 
     private DepthBooks asks = new AskDepthBooks();
 
-    private long lastSequence;
+    private long lastSequence = -1L;
 
     private boolean update = false;
 
     private long lastDumpTime = Util.nowMS();
 
 
-    public SymbolDepths(int symbolId, int maxDepthSize) {
+    public SymbolDepths(int symbolId) {
 
         this.symbolId = symbolId;
-        this.maxDepthSize = maxDepthSize;
     }
 
 
-    public void handle(OrderMatch match, DataProvider<Integer, DepthResult> provider, long now) {
+    public void handle(OrderMatch match, DataProvider<Integer, DepthResult> provider, long now, int maxDepthSize) {
 
         if (this.lastSequence >= match.maxSeq()) {
             return;
@@ -65,17 +62,18 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
         }
 
         this.update = true;
-        scan(provider, now);
+        scan(provider, now, maxDepthSize);
     }
 
 
-    public void scan(DataProvider<Integer, DepthResult> provider, long now) {
+    public void scan(DataProvider<Integer, DepthResult> provider, long now, int maxDepthSize) {
 
         if (this.bids.newEdgePrice(this.asks.getCachePrice()) && needDump(now)) {
             DepthResult depthResult = provider.feedOne(this.symbolId);
             depthResult.setSymbolId(this.symbolId);
             depthResult.setTimestamp(now);
-            depthResult.dump(this, this.maxDepthSize);
+            depthResult.setLastSequence(this.lastSequence);
+            depthResult.dump(this, maxDepthSize);
             provider.push();
             this.update = false;
             this.lastDumpTime = now;
@@ -97,7 +95,6 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
         this.symbolId = bytes.readInt();
-        this.maxDepthSize = bytes.readInt();
         this.bids.readMarshallable(bytes);
         this.asks.readMarshallable(bytes);
         this.lastSequence = bytes.readLong();
@@ -107,7 +104,6 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(this.symbolId);
-        bytes.writeInt(this.maxDepthSize);
         this.bids.writeMarshallable(bytes);
         this.asks.writeMarshallable(bytes);
         bytes.writeLong(this.lastSequence);

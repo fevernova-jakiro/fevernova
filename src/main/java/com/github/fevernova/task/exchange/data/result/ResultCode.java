@@ -9,7 +9,7 @@ public enum ResultCode {
     CANCEL_IOC(21),
     CANCEL_FOK(22),
     CANCEL_POSTONLY(23),
-    CANCEL_DEPTHONLY(24),
+    CANCEL_NOTFOUND(24),
 
     MATCH(30),
 
@@ -38,7 +38,7 @@ public enum ResultCode {
             case 23:
                 return CANCEL_POSTONLY;
             case 24:
-                return CANCEL_DEPTHONLY;
+                return CANCEL_NOTFOUND;
             case 30:
                 return MATCH;
             case 40:
