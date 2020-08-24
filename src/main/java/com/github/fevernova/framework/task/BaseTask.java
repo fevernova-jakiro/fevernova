@@ -34,9 +34,9 @@ public abstract class BaseTask {
 
         this.context = context;
         this.named = Named.builder().taskName(Constants.PROJECT_NAME).moduleName(context.getName()).moduleType(getClass().getSimpleName()).build();
+        this.createTime = Util.nowMS();
         EventBus eventBus = new EventBus(this.named.render(true));
         eventBus.register(this);
-        this.createTime = Util.nowMS();
         this.globalContext = GlobalContext.builder().eventBus(eventBus).customContext(Maps.newConcurrentMap()).jobTags(tags).build();
         Validate.isTrue(this.globalContext.getJobTags().getUnit() >= 1 && this.globalContext.getJobTags().getUnit() <= 5);
     }
@@ -55,7 +55,7 @@ public abstract class BaseTask {
     public BaseTask recovery() {
 
         log.info("Task Recovery .");
-        manager.recovery();
+        this.manager.recovery();
         return this;
     }
 
