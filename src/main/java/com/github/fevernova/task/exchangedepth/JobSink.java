@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.redisson.Redisson;
 import org.redisson.api.RTopic;
+import org.redisson.client.codec.ByteArrayCodec;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
 
@@ -34,6 +35,7 @@ public class JobSink extends AbstractSink {
         singleServerConfig.setDatabase(taskContext.getInteger("dbnum", 0));
         singleServerConfig.setConnectionPoolSize(taskContext.getInteger("poolsize", 64));
         singleServerConfig.setClientName(super.named.render(true));
+        redisConfig.setCodec(ByteArrayCodec.INSTANCE);
         this.redis = (Redisson) Redisson.create(redisConfig);
         String topicName = taskContext.get("topic");
         Validate.notNull(topicName);
