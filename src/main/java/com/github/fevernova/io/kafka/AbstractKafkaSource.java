@@ -72,6 +72,8 @@ public abstract class AbstractKafkaSource extends AbstractSource<byte[], KafkaDa
 
         if (records != null && !records.isEmpty()) {
             kafkaRecords(records);
+        } else {
+            Util.sleepMS(1);
         }
     }
 
