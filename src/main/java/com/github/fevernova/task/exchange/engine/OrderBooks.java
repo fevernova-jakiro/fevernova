@@ -42,6 +42,8 @@ public final class OrderBooks implements WriteBytesMarshallable {
     @Setter
     private long lastMatchPrice = 0L;
 
+    private boolean scanCondition = false;
+
 
     public OrderBooks(int symbolId) {
 
@@ -157,6 +159,10 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
 
     private void scanConditionBooks(long timestamp, DataProvider<Integer, OrderMatch> provider, LinkedQueue<ConditionOrder> queue) {
+
+        if (!this.scanCondition) {
+            return;
+        }
 
         boolean isRoot = (queue == null);
         queue = isRoot ? new LinkedQueue<>() : queue;

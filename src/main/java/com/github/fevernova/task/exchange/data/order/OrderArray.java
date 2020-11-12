@@ -77,8 +77,8 @@ public final class OrderArray implements WriteBytesMarshallable {
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
             thisOrder.decrement(delta);
             thatOrder.decrement(delta);
-            that.decrement(thatOrder, delta);
             this.decrement(thisOrder, delta);
+            that.decrement(thatOrder, delta);
             OrderMatch orderMatch = provider.feedOne(symbolId);
             orderMatch.from(sequence, symbolId, thisOrder, thatOrder, this, that, matchPrice, delta, timestamp, driverAction);
             provider.push();
