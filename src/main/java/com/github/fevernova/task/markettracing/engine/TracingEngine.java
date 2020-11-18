@@ -1,6 +1,7 @@
 package com.github.fevernova.task.markettracing.engine;
 
 
+import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
 import com.github.fevernova.task.markettracing.data.Market;
 import com.github.fevernova.task.markettracing.data.SQTimeUtil;
@@ -10,19 +11,26 @@ import com.github.fevernova.task.markettracing.engine.struct.OrderBook;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import net.openhft.chronicle.bytes.BytesIn;
+import net.openhft.chronicle.bytes.BytesOut;
+import net.openhft.chronicle.bytes.ReadBytesMarshallable;
+import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import net.openhft.chronicle.core.io.IORuntimeException;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.*;
 
-import static org.apache.commons.lang3.time.DateUtils.MILLIS_PER_MINUTE;
-
 
 @Slf4j
-public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
+public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> implements WriteBytesMarshallable, ReadBytesMarshallable {
 
+
+    public static final String CONS_NAME = "TracingEngine";
 
     private Map<Integer, CandleMessage> candlesCache = Maps.newHashMap();
 
-    private Map<Integer, LinkedList<Market>> marketsCache = Maps.newHashMap();
+    private Map<Integer, List<Market>> marketsCache = Maps.newHashMap();
 
     private Map<Integer, NavigableMap<Long, List<E>>> ordersCache = Maps.newHashMap();
 
@@ -49,7 +57,7 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
                 onChange(oldCandle, newCandle);
             } else if (newCandle.getTimeSequence() > oldCandle.getTimeSequence()) {
                 onFirst(newCandle);
-            } else if (newCandle.getTimeSequence() < oldCandle.getTimeSequence()) {//忽略回退数据
+            } else if (newCandle.getTimeSequence() < oldCandle.getTimeSequence()) {
                 this.candlesCache.put(oldCandle.getPairCodeId(), oldCandle);
                 return;
             }
@@ -60,7 +68,7 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
     private void onFirst(CandleMessage candle) {
 
         final Long lastTickerTime = SQTimeUtil.toSequenceTime(candle.getTimeSequence(), candle.getTimestamp());
-        lastTickerTimeMap.put(candle.getPairCodeId(), lastTickerTime);
+        this.lastTickerTimeMap.put(candle.getPairCodeId(), lastTickerTime);
         if (candle.getCount() == 0) {
             return;
         }
@@ -77,7 +85,7 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
     private void onChange(CandleMessage oldCandle, CandleMessage newCandle) {
 
         final Long lastTickerTime = SQTimeUtil.toSequenceTime(newCandle.getTimeSequence(), newCandle.getTimestamp());
-        lastTickerTimeMap.put(newCandle.getPairCodeId(), lastTickerTime);
+        this.lastTickerTimeMap.put(newCandle.getPairCodeId(), lastTickerTime);
         if (oldCandle.getCount() >= newCandle.getCount()) {
             return;
         }
@@ -110,11 +118,9 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
 
     private void processMarket(Integer pairCodeId, Market market) {
 
-        LinkedList<Market> markets = getOrCreateMarkets(pairCodeId);
+        List<Market> markets = getOrCreateMarkets(pairCodeId);
         markets.add(market);
-
         final T orderBook = getOrCreateOrderBook(pairCodeId);
-
         final NavigableMap<Long, List<E>> orderMap = getOrCreateOrderMap(pairCodeId);
         final NavigableMap<Long, List<E>> moves = orderMap.headMap(market.getTimestamp(), false);
         final Iterator<Map.Entry<Long, List<E>>> iterator = moves.entrySet().iterator();
@@ -123,26 +129,20 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
             iterator.remove();
         }
         final List<E> result = orderBook.process(market);
-        result.forEach(e -> {
-            System.out.println(e.getOrderId());
-        });
         //TODO 处理结果发送到下游
     }
 
 
     public void handleOrder(Integer pairCodeId, E order) {
         //条件单时间是历史的，先拿历史行情数据计算
-        final Long lastTickerTime = lastTickerTimeMap.get(pairCodeId);
+        final Long lastTickerTime = this.lastTickerTimeMap.get(pairCodeId);
         if (Objects.nonNull(lastTickerTime) && order.getTimestamp() < lastTickerTime) {
-            final LinkedList<Market> markets = getOrCreateMarkets(pairCodeId);
-            final T t = factory.create();
+            final List<Market> markets = getOrCreateMarkets(pairCodeId);
+            final T t = this.factory.create();
             t.addOrder(order);
             markets.forEach(market -> {
                 if (market.getTimestamp() > order.getTimestamp()) {
                     final List<E> result = t.process(market);
-                    result.forEach(e -> {
-                        System.out.println(e.getOrderId());
-                    });
                     //TODO 处理结果发送到下游
                 }
             });
@@ -159,12 +159,12 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
     }
 
 
-    private LinkedList<Market> getOrCreateMarkets(Integer pairCodeId) {
+    private List<Market> getOrCreateMarkets(Integer pairCodeId) {
 
-        LinkedList<Market> markets = marketsCache.get(pairCodeId);
+        List<Market> markets = this.marketsCache.get(pairCodeId);
         if (Objects.isNull(markets)) {
             markets = Lists.newLinkedList();
-            marketsCache.put(pairCodeId, markets);
+            this.marketsCache.put(pairCodeId, markets);
         }
         return markets;
     }
@@ -172,10 +172,10 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
 
     private NavigableMap<Long, List<E>> getOrCreateOrderMap(Integer pairCodeId) {
 
-        NavigableMap<Long, List<E>> orderMap = ordersCache.get(pairCodeId);
+        NavigableMap<Long, List<E>> orderMap = this.ordersCache.get(pairCodeId);
         if (Objects.isNull(orderMap)) {
             orderMap = Maps.newTreeMap();
-            ordersCache.put(pairCodeId, orderMap);
+            this.ordersCache.put(pairCodeId, orderMap);
         }
         return orderMap;
     }
@@ -183,10 +183,10 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
 
     private T getOrCreateOrderBook(Integer pairCodeId) {
 
-        T orderBook = orderBookMap.get(pairCodeId);
+        T orderBook = this.orderBookMap.get(pairCodeId);
         if (Objects.isNull(orderBook)) {
-            orderBook = factory.create();
-            orderBookMap.put(pairCodeId, orderBook);
+            orderBook = this.factory.create();
+            this.orderBookMap.put(pairCodeId, orderBook);
         }
         return orderBook;
     }
@@ -194,14 +194,38 @@ public class TracingEngine<T extends OrderBook, E extends ConditionOrder> {
 
     public void heartbeat(Integer pairCodeId, Long timestamp) {
 
-        final LinkedList<Market> markets = getOrCreateMarkets(pairCodeId);
+        final List<Market> markets = getOrCreateMarkets(pairCodeId);
         final Iterator<Market> each = markets.iterator();
         while (each.hasNext()) {
-            if (timestamp - each.next().getTimestamp() > 3 * MILLIS_PER_MINUTE) {
+            if (timestamp - each.next().getTimestamp() > 3 * DateUtils.MILLIS_PER_MINUTE) {
                 each.remove();
             } else {
                 break;
             }
         }
+    }
+
+
+    @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
+
+        Validate.isTrue(bytes.readInt() == 0);
+        SerializationUtils.readIntMap(bytes, this.candlesCache, bytesIn -> new CandleMessage(bytesIn));
+        SerializationUtils.readIntMap(bytes, this.marketsCache, bytesIn -> {
+
+            List<Market> result = Lists.newLinkedList();
+            SerializationUtils.readCollections(bytesIn, result, bytesIn1 -> new Market(bytesIn1));
+            return result;
+        });
+        SerializationUtils.readIntMap(bytes, this.lastTickerTimeMap, bytesIn -> bytesIn.readLong());
+    }
+
+
+    @Override public void writeMarshallable(BytesOut bytes) {
+
+        bytes.writeInt(0);
+        SerializationUtils.writeIntMap(this.candlesCache, bytes);
+        SerializationUtils.writeIntMap(bytes, this.marketsCache,
+                                       (bytesOut, markets) -> SerializationUtils.writeCollections(bytesOut, markets, (bytesOut1, market) -> market.writeMarshallable(bytesOut1)));
+        SerializationUtils.writeIntMap(bytes, this.lastTickerTimeMap, (bytesOut, v) -> bytesOut.writeLong(v));
     }
 }

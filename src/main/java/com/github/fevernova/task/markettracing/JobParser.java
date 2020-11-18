@@ -17,10 +17,14 @@ import com.github.fevernova.framework.service.state.StateService;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
-import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
+import com.github.fevernova.task.markettracing.data.CandleMessage;
+import com.github.fevernova.task.markettracing.data.order.OrderType;
+import com.github.fevernova.task.markettracing.data.order.SLOrder;
+import com.github.fevernova.task.markettracing.engine.TracingEngine;
+import com.github.fevernova.task.markettracing.engine.struct.SLFactory;
+import com.github.fevernova.task.markettracing.engine.struct.SLOrderBook;
+import com.google.common.primitives.Ints;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
@@ -33,7 +37,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
 
     protected ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
 
-    private OrderBooksEngine matchEngine;
+    private TracingEngine<SLOrderBook, SLOrder> tracingEngine;
 
     private BinaryFileIdentity matchIdentity;
 
@@ -41,44 +45,33 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        TaskContext matchEngineContext =
-                new TaskContext(OrderBooksEngine.CONS_NAME, taskContext.getSubProperties(OrderBooksEngine.CONS_NAME.toLowerCase() + "."));
-        this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);
+        this.tracingEngine = new TracingEngine<>(new SLFactory());
         this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
-                .identity(OrderBooksEngine.CONS_NAME.toLowerCase()).build();
+                .identity(TracingEngine.CONS_NAME.toLowerCase()).build();
     }
 
 
     @Override protected void handleEvent(Data event) {
 
         KafkaData kafkaData = (KafkaData) event;
-        OrderCommand orderCommand = new OrderCommand();
-        orderCommand.from(kafkaData.getValue());
-
-        if (OrderMode.SIMPLE == orderCommand.getOrderMode()) {
-            switch (orderCommand.getOrderCommandType()) {
-                case PLACE_ORDER:
-                    this.matchEngine.placeOrder(orderCommand, this);
-                    break;
-                case CANCEL_ORDER:
-                    this.matchEngine.cancelOrder(orderCommand, this);
-                    break;
-                case LOCATE_MATCH_PRICE:
-                    this.matchEngine.locateMatchPrice(orderCommand, this);
-                    break;
-                case HEARTBEAT:
-                    this.matchEngine.heartBeat(orderCommand, this);
-                    break;
-            }
-        } else {
-            switch (orderCommand.getOrderCommandType()) {
-                case PLACE_ORDER:
-                    this.matchEngine.placeConditionOrder(orderCommand, this);
-                    break;
-                case CANCEL_ORDER:
-                    this.matchEngine.cancelConditionOrder(orderCommand, this);
-                    break;
-            }
+        switch (kafkaData.getTopic()) {
+            case "markets":
+                CandleMessage candle = new CandleMessage();
+                candle.from(kafkaData.getValue());
+                this.tracingEngine.handleCandle(candle);
+                break;
+            case "simple_condition_order":
+                int pairCodeId = Ints.fromByteArray(kafkaData.getKey());
+                SLOrder order = new SLOrder();
+                order.from(kafkaData.getValue());
+                if (OrderType.HEARTBEAT == order.getOrderType()) {
+                    this.tracingEngine.heartbeat(pairCodeId, order.getTimestamp());
+                } else {
+                    this.tracingEngine.handleOrder(pairCodeId, order);
+                }
+                break;
+            default:
+                Validate.isTrue(false);
         }
     }
 
@@ -89,7 +82,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         MapCheckPoint checkPoint = new MapCheckPoint();
         StateService stateService = Manager.getInstance().getStateService();
         if (stateService.isSupportRecovery()) {
-            String path4engine = stateService.saveBinary(this.matchIdentity, barrierData, this.matchEngine);
+            String path4engine = stateService.saveBinary(this.matchIdentity, barrierData, this.tracingEngine);
             checkPoint.getValues().put(this.matchIdentity.getIdentity(), path4engine);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
@@ -127,7 +120,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
             if (stateValue.getCompomentIndex() == index) {
                 MapCheckPoint checkPoint = new MapCheckPoint();
                 checkPoint.parseFromJSON((JSONObject) stateValue.getValue());
-                Manager.getInstance().getStateService().recoveryBinary(checkPoint.getValues().get(matchIdentity.getIdentity()), matchEngine);
+                Manager.getInstance().getStateService().recoveryBinary(checkPoint.getValues().get(matchIdentity.getIdentity()), tracingEngine);
             }
         });
     }

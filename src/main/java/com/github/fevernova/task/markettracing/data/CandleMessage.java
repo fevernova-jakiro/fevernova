@@ -1,16 +1,19 @@
 package com.github.fevernova.task.markettracing.data;
 
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import net.openhft.chronicle.bytes.BytesIn;
+import net.openhft.chronicle.bytes.BytesOut;
+import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import org.apache.commons.lang3.Validate;
 
 import java.nio.ByteBuffer;
 
 
 @Getter
-@Builder
-public class CandleMessage {
+@NoArgsConstructor
+public class CandleMessage implements WriteBytesMarshallable {
 
 
     private Integer pairCodeId;
@@ -34,6 +37,21 @@ public class CandleMessage {
     private Long timestamp;
 
 
+    public CandleMessage(BytesIn bytes) {
+
+        this.pairCodeId = bytes.readInt();
+        this.open = bytes.readDouble();
+        this.high = bytes.readDouble();
+        this.low = bytes.readDouble();
+        this.close = bytes.readDouble();
+        this.volume = bytes.readDouble();
+        this.amount = bytes.readDouble();
+        this.count = bytes.readLong();
+        this.timeSequence = bytes.readLong();
+        this.timestamp = bytes.readLong();
+    }
+
+
     public void from(byte[] bytes) {
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
@@ -49,6 +67,20 @@ public class CandleMessage {
         this.count = byteBuffer.getLong();
         this.timeSequence = byteBuffer.getLong();
         this.timestamp = byteBuffer.getLong();
+    }
 
+
+    @Override public void writeMarshallable(BytesOut bytes) {
+
+        bytes.writeInt(this.pairCodeId);
+        bytes.writeDouble(this.open);
+        bytes.writeDouble(this.high);
+        bytes.writeDouble(this.low);
+        bytes.writeDouble(this.close);
+        bytes.writeDouble(this.volume);
+        bytes.writeDouble(this.amount);
+        bytes.writeLong(this.count);
+        bytes.writeLong(this.timeSequence);
+        bytes.writeLong(this.timestamp);
     }
 }
