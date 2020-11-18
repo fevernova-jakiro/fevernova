@@ -13,7 +13,7 @@ public class SLOrderBook extends OrderBook<SLOrder> {
     @Override
     public boolean addOrder(SLOrder order) {
 
-        final SLOrder old = this.ordersMap.putIfAbsent(order.getOrderId(), order);
+        final SLOrder old = this.orders.putIfAbsent(order.getOrderId(), order);
         if (old != null) {
             return false;
         }
@@ -29,7 +29,7 @@ public class SLOrderBook extends OrderBook<SLOrder> {
     @Override
     public boolean cancelOrder(long orderId) {
 
-        final SLOrder order = this.ordersMap.remove(orderId);
+        final SLOrder order = this.orders.remove(orderId);
         if (order != null) {
             if (OrderType.DOWN == order.getOrderType()) {
                 delFromTreeMap(order.getTriggerPrice(), orderId, this.downTree);
@@ -66,7 +66,7 @@ public class SLOrderBook extends OrderBook<SLOrder> {
                 for (Map.Entry<Long, SLOrder> entry : tmpOrders.entrySet()) {
                     final SLOrder order = entry.getValue();
                     result.add(order);
-                    this.ordersMap.remove(order.getOrderId());
+                    this.orders.remove(order.getOrderId());
                 }
                 iterator.remove();
             }

@@ -6,15 +6,15 @@ import com.github.fevernova.task.markettracing.data.order.ConditionOrder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
+import java.util.*;
 
 
 public abstract class OrderBook<T extends ConditionOrder> {
 
 
-    protected final Map<Long, T> ordersMap = Maps.newHashMap();
+    protected final Map<Long, T> orders = Maps.newHashMap();
+
+    protected final NavigableMap<Long, List<T>> preOrders = Maps.newTreeMap();
 
     protected final NavigableMap<Double, Map<Long, T>> downTree = Maps.newTreeMap();
 
@@ -58,12 +58,33 @@ public abstract class OrderBook<T extends ConditionOrder> {
 
     public void merge(OrderBook<T> orderBook) {
 
-        orderBook.ordersMap.values().forEach(t -> addOrder(t));
+        orderBook.orders.values().forEach(t -> addOrder(t));
+    }
+
+
+    public void addPreOrder(T order) {
+
+        List<T> orderList = this.preOrders.get(order.getTimestamp());
+        if (Objects.isNull(orderList)) {
+            orderList = Lists.newLinkedList();
+            this.preOrders.put(order.getTimestamp(), orderList);
+        }
+        orderList.add(order);
+    }
+
+
+    public void loadPreOrders(long timestamp) {
+
+        final NavigableMap<Long, List<T>> moves = preOrders.headMap(timestamp, false);
+        final Iterator<Map.Entry<Long, List<T>>> iterator = moves.entrySet().iterator();
+        while (iterator.hasNext()) {
+            iterator.next().getValue().forEach(e -> addOrder(e));
+            iterator.remove();
+        }
     }
 
 
     public abstract boolean addOrder(T order);
-
 
     public abstract boolean cancelOrder(long orderId);
 
@@ -73,7 +94,7 @@ public abstract class OrderBook<T extends ConditionOrder> {
 
     protected void clear() {
 
-        this.ordersMap.clear();
+        this.orders.clear();
         this.downTree.clear();
         this.upTree.clear();
     }

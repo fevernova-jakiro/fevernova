@@ -32,8 +32,6 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
     private Map<Integer, List<Market>> marketsCache = Maps.newHashMap();
 
-    private Map<Integer, NavigableMap<Long, List<E>>> ordersCache = Maps.newHashMap();
-
     private Map<Integer, T> orderBookMap = Maps.newHashMap();
 
     private Map<Integer, Long> lastTickerTimeMap = Maps.newHashMap();
@@ -121,13 +119,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         List<Market> markets = getOrCreateMarkets(pairCodeId);
         markets.add(market);
         final T orderBook = getOrCreateOrderBook(pairCodeId);
-        final NavigableMap<Long, List<E>> orderMap = getOrCreateOrderMap(pairCodeId);
-        final NavigableMap<Long, List<E>> moves = orderMap.headMap(market.getTimestamp(), false);
-        final Iterator<Map.Entry<Long, List<E>>> iterator = moves.entrySet().iterator();
-        while (iterator.hasNext()) {
-            iterator.next().getValue().forEach(e -> orderBook.addOrder(e));
-            iterator.remove();
-        }
+        orderBook.loadPreOrders(market.getTimestamp());
         final List<E> result = orderBook.process(market);
         //TODO 处理结果发送到下游
     }
@@ -148,13 +140,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
             });
             getOrCreateOrderBook(pairCodeId).merge(t);
         } else {
-            final NavigableMap<Long, List<E>> orderMap = getOrCreateOrderMap(pairCodeId);
-            List<E> orderList = orderMap.get(order.getTimestamp());
-            if (Objects.isNull(orderList)) {
-                orderList = Lists.newLinkedList();
-                orderMap.put(order.getTimestamp(), orderList);
-            }
-            orderList.add(order);
+            getOrCreateOrderBook(pairCodeId).addPreOrder(order);
         }
     }
 
@@ -167,17 +153,6 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
             this.marketsCache.put(pairCodeId, markets);
         }
         return markets;
-    }
-
-
-    private NavigableMap<Long, List<E>> getOrCreateOrderMap(Integer pairCodeId) {
-
-        NavigableMap<Long, List<E>> orderMap = this.ordersCache.get(pairCodeId);
-        if (Objects.isNull(orderMap)) {
-            orderMap = Maps.newTreeMap();
-            this.ordersCache.put(pairCodeId, orderMap);
-        }
-        return orderMap;
     }
 
 
@@ -226,6 +201,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         SerializationUtils.writeIntMap(this.candlesCache, bytes);
         SerializationUtils.writeIntMap(bytes, this.marketsCache,
                                        (bytesOut, markets) -> SerializationUtils.writeCollections(bytesOut, markets, (bytesOut1, market) -> market.writeMarshallable(bytesOut1)));
+
         SerializationUtils.writeIntMap(bytes, this.lastTickerTimeMap, (bytesOut, v) -> bytesOut.writeLong(v));
     }
 }

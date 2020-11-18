@@ -22,7 +22,7 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     public boolean addOrder(DTOrder order) {
 
         order.setPolarPrice(lastPrice);
-        DTOrder old = this.ordersMap.putIfAbsent(order.getOrderId(), order);
+        DTOrder old = this.orders.putIfAbsent(order.getOrderId(), order);
         if (old != null) {
             return false;
         }
@@ -40,7 +40,7 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     @Override
     public boolean cancelOrder(long orderId) {
 
-        DTOrder order = this.ordersMap.remove(orderId);
+        DTOrder order = this.orders.remove(orderId);
         if (order != null) {
             if (OrderType.RETRACEMENT == order.getOrderType()) {
                 delFromTreeMap(order.getPolarPrice(), orderId, this.highPriceTree);
@@ -109,7 +109,7 @@ public class DTOrderBook extends OrderBook<DTOrder> {
                     DTOrder order = entry.getValue();
                     result.add(order);
                     delFromTreeMap(order.getPolarPrice(), order.getOrderId(), polarTree);
-                    this.ordersMap.remove(order.getOrderId());
+                    this.orders.remove(order.getOrderId());
                 }
                 iterator.remove();
             }
