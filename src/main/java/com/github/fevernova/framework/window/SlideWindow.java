@@ -89,7 +89,7 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        SerializationUtils.writeIntMap(this.windows, bytes);
+        SerializationUtils.writeIntMap(bytes, this.windows);
     }
 
 

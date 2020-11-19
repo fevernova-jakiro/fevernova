@@ -5,6 +5,7 @@ import com.github.fevernova.task.markettracing.data.order.DTOrder;
 import com.github.fevernova.task.markettracing.data.order.OrderType;
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import net.openhft.chronicle.bytes.BytesIn;
 
 import java.util.*;
 
@@ -21,17 +22,17 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     @Override
     public boolean addOrder(DTOrder order) {
 
-        order.setPolarPrice(lastPrice);
-        DTOrder old = this.orders.putIfAbsent(order.getOrderId(), order);
+        order.setPolarPrice(super.lastPrice);
+        DTOrder old = super.orders.putIfAbsent(order.getOrderId(), order);
         if (old != null) {
             return false;
         }
         if (OrderType.RETRACEMENT == order.getOrderType()) {
             add2TreeMap(order.getPolarPrice(), order, this.highPriceTree);
-            add2TreeMap(order.getTriggerPrice(), order, this.downTree);
+            add2TreeMap(order.getTriggerPrice(), order, super.downTree);
         } else {
             add2TreeMap(order.getPolarPrice(), order, this.lowPriceTree);
-            add2TreeMap(order.getTriggerPrice(), order, this.upTree);
+            add2TreeMap(order.getTriggerPrice(), order, super.upTree);
         }
         return true;
     }
@@ -40,14 +41,14 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     @Override
     public boolean cancelOrder(long orderId) {
 
-        DTOrder order = this.orders.remove(orderId);
+        DTOrder order = super.orders.remove(orderId);
         if (order != null) {
             if (OrderType.RETRACEMENT == order.getOrderType()) {
                 delFromTreeMap(order.getPolarPrice(), orderId, this.highPriceTree);
-                delFromTreeMap(order.getTriggerPrice(), orderId, this.downTree);
+                delFromTreeMap(order.getTriggerPrice(), orderId, super.downTree);
             } else {
                 delFromTreeMap(order.getPolarPrice(), orderId, this.lowPriceTree);
-                delFromTreeMap(order.getTriggerPrice(), orderId, this.upTree);
+                delFromTreeMap(order.getTriggerPrice(), orderId, super.upTree);
             }
             return true;
         }
@@ -59,14 +60,14 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     public List<DTOrder> newPrice(double newPrice) {
 
         List<DTOrder> result = new LinkedList<>();
-        if (this.lastPrice < newPrice) {
-            adjust(newPrice, this.highPriceTree, this.downTree);
-            match(result, newPrice, this.lowPriceTree, this.upTree);
-        } else if (this.lastPrice > newPrice) {
-            adjust(newPrice, this.lowPriceTree, this.upTree);
-            match(result, newPrice, this.highPriceTree, this.downTree);
+        if (super.lastPrice < newPrice) {
+            adjust(newPrice, this.highPriceTree, super.downTree);
+            match(result, newPrice, this.lowPriceTree, super.upTree);
+        } else if (super.lastPrice > newPrice) {
+            adjust(newPrice, this.lowPriceTree, super.upTree);
+            match(result, newPrice, this.highPriceTree, super.downTree);
         }
-        this.lastPrice = newPrice;
+        super.lastPrice = newPrice;
         return result;
     }
 
@@ -109,7 +110,7 @@ public class DTOrderBook extends OrderBook<DTOrder> {
                     DTOrder order = entry.getValue();
                     result.add(order);
                     delFromTreeMap(order.getPolarPrice(), order.getOrderId(), polarTree);
-                    this.orders.remove(order.getOrderId());
+                    super.orders.remove(order.getOrderId());
                 }
                 iterator.remove();
             }
@@ -123,5 +124,11 @@ public class DTOrderBook extends OrderBook<DTOrder> {
         super.clear();
         this.highPriceTree.clear();
         this.lowPriceTree.clear();
+    }
+
+
+    @Override protected DTOrder newOrder(BytesIn bytes) {
+
+        return new DTOrder(bytes);
     }
 }

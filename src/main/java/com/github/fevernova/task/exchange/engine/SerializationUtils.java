@@ -26,6 +26,16 @@ public class SerializationUtils {
     }
 
 
+    public static <T> void readLongMap(final BytesIn bytes, final Map<Long, T> map, final Function<BytesIn, T> creator) {
+
+        int length = bytes.readInt();
+        for (int i = 0; i < length; i++) {
+            long k = bytes.readLong();
+            map.put(k, creator.apply(bytes));
+        }
+    }
+
+
     public static <T> void writeIntMap(final BytesOut bytes, final Map<Integer, T> map, final BiConsumer<BytesOut, T> creator) {
 
         bytes.writeInt(map.size());
@@ -36,9 +46,25 @@ public class SerializationUtils {
     }
 
 
-    public static <T extends WriteBytesMarshallable> void writeIntMap(final Map<Integer, T> map, final BytesOut bytes) {
+    public static <T extends WriteBytesMarshallable> void writeIntMap(final BytesOut bytes, final Map<Integer, T> map) {
 
         writeIntMap(bytes, map, (bytesOut, t) -> t.writeMarshallable(bytesOut));
+    }
+
+
+    public static <T> void writeLongMap(final BytesOut bytes, final Map<Long, T> map, final BiConsumer<BytesOut, T> creator) {
+
+        bytes.writeInt(map.size());
+        map.forEach((k, v) -> {
+            bytes.writeLong(k);
+            creator.accept(bytes, v);
+        });
+    }
+
+
+    public static <T extends WriteBytesMarshallable> void writeLongMap(final BytesOut bytes, final Map<Long, T> map) {
+
+        writeLongMap(bytes, map, (bytesOut, t) -> t.writeMarshallable(bytesOut));
     }
 
 
