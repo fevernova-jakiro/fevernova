@@ -10,6 +10,7 @@ import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.order.OrderType;
+import com.github.fevernova.task.exchange.engine.OrderBooks;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import org.junit.Before;
 import org.junit.Test;
@@ -144,6 +145,8 @@ public class T_EngineMatch extends T_Engine {
 
     @Test
     public void T_condition2Simple() {
+
+        OrderBooks.setScanCondition(true);
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
         cmd1.setPrice(10);

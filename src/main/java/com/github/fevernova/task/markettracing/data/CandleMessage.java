@@ -1,6 +1,7 @@
 package com.github.fevernova.task.markettracing.data;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -13,6 +14,7 @@ import java.nio.ByteBuffer;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class CandleMessage implements WriteBytesMarshallable {
 
 
