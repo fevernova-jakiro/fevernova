@@ -32,7 +32,7 @@ import java.util.List;
 
 
 @Slf4j
-public class JobParser extends AbstractParser<Integer, TriggerResult> implements BarrierCoordinatorListener {
+public class SLJobParser extends AbstractParser<Integer, TriggerResult> implements BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
@@ -42,7 +42,7 @@ public class JobParser extends AbstractParser<Integer, TriggerResult> implements
     private BinaryFileIdentity matchIdentity;
 
 
-    public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
+    public SLJobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.tracingEngine = new TracingEngine<>(new SLFactory(), this);
@@ -60,7 +60,7 @@ public class JobParser extends AbstractParser<Integer, TriggerResult> implements
                 candle.from(kafkaData.getValue());
                 this.tracingEngine.handleCandle(candle);
                 break;
-            case "simple_condition_order":
+            case "sl_condition_order":
                 int pairCodeId = Ints.fromByteArray(kafkaData.getKey());
                 SLOrder order = new SLOrder();
                 order.from(kafkaData.getValue());

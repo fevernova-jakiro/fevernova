@@ -2,6 +2,7 @@ package com.github.fevernova.task.markettracing;
 
 
 import com.github.fevernova.framework.common.Constants;
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.JobTags;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.channel.selector.BytesSelector;
@@ -36,9 +37,10 @@ public class Task extends BaseTask {
     @Override public BaseTask init() throws Exception {
 
         super.init();
+        String parserClassName = super.context.getString("parser.class");
         super.manager.register(new TaskTopology(super.globalContext, super.context, TaskConfig.builder()
                 .sourceClass(JobSource.class)
-                .parserClass(JobParser.class)
+                .parserClass(Util.findClass(parserClassName))
                 .sinkClass(JobSink.class)
                 .inputDataFactoryClass(KafkaDataFactory.class)
                 .outputDataFactoryClass(TriggerResultFactory.class)
