@@ -1,10 +1,12 @@
 package com.github.fevernova.task.markettracing.engine;
 
 
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
 import com.github.fevernova.task.markettracing.data.Market;
 import com.github.fevernova.task.markettracing.data.SQTimeUtil;
+import com.github.fevernova.task.markettracing.data.TriggerResult;
 import com.github.fevernova.task.markettracing.data.order.ConditionOrder;
 import com.github.fevernova.task.markettracing.engine.struct.Factory;
 import com.github.fevernova.task.markettracing.engine.struct.OrderBook;
@@ -38,10 +40,13 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
     private final Factory<T> factory;
 
+    private final DataProvider<Integer, TriggerResult> provider;
 
-    public TracingEngine(Factory<T> factory) {
+
+    public TracingEngine(Factory<T> factory, DataProvider<Integer, TriggerResult> provider) {
 
         this.factory = factory;
+        this.provider = provider;
     }
 
 
@@ -121,7 +126,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         final T orderBook = getOrCreateOrderBook(pairCodeId);
         orderBook.loadPreOrders(market.getTimestamp());
         final List<E> result = orderBook.process(market);
-        //TODO 处理结果发送到下游
+        sendResult(pairCodeId, result);
     }
 
 
@@ -139,10 +144,20 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
                     result.addAll(tmp.process(market));
                 }
             });
-            //TODO 处理结果发送到下游
+            sendResult(pairCodeId, result);
             orderBook.merge(tmp);
         } else {
             orderBook.addPreOrder(order);
+        }
+    }
+
+
+    private void sendResult(int pairCodeId, List<E> result) {
+
+        for (E e : result) {
+            TriggerResult tr = this.provider.feedOne(pairCodeId);
+            tr.from(pairCodeId, e);
+            this.provider.push();
         }
     }
 
@@ -208,8 +223,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         bytes.writeInt(0);
         SerializationUtils.writeIntMap(bytes, this.candlesCache);
         SerializationUtils.writeIntMap(bytes, this.lastTickerTimeMap, (bytesOut, v) -> bytesOut.writeLong(v));
-        SerializationUtils.writeIntMap(bytes, this.marketsCache,
-                                       (bytesOut, markets) -> SerializationUtils.writeCollections(bytesOut, markets, (bytesOut1, market) -> market.writeMarshallable(bytesOut1)));
+        SerializationUtils.writeIntMap(bytes, this.marketsCache, (bytesOut, markets) -> SerializationUtils.writeCollections(bytesOut, markets));
         SerializationUtils.writeIntMap(bytes, this.orderBookMap);
     }
 }

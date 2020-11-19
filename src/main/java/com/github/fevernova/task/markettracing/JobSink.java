@@ -6,7 +6,7 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.io.kafka.AbstractKafkaSink;
-import com.github.fevernova.task.exchange.data.result.OrderMatch;
+import com.github.fevernova.task.markettracing.data.TriggerResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -29,13 +29,13 @@ public class JobSink extends AbstractKafkaSink {
     @Override
     protected void handleEvent(Data event) {
 
-        OrderMatch data = (OrderMatch) event;
+        TriggerResult data = (TriggerResult) event;
         if (LogProxy.LOG_DATA.isTraceEnabled()) {
             LogProxy.LOG_DATA.trace(data.toString());
         }
 
         this.byteBuffer = ByteBuffer.allocate(4);
-        this.byteBuffer.putInt(data.getSymbolId());
+        this.byteBuffer.putInt(data.getPairCodeId());
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(super.topic, this.byteBuffer.array(), data.getBytes());
         super.kafka.send(record, this);
     }

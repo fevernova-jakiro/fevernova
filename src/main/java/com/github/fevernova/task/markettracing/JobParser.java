@@ -17,8 +17,8 @@ import com.github.fevernova.framework.service.state.StateService;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
-import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
+import com.github.fevernova.task.markettracing.data.TriggerResult;
 import com.github.fevernova.task.markettracing.data.order.OrderType;
 import com.github.fevernova.task.markettracing.data.order.SLOrder;
 import com.github.fevernova.task.markettracing.engine.TracingEngine;
@@ -32,7 +32,7 @@ import java.util.List;
 
 
 @Slf4j
-public class JobParser extends AbstractParser<Integer, OrderMatch> implements BarrierCoordinatorListener {
+public class JobParser extends AbstractParser<Integer, TriggerResult> implements BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
@@ -45,7 +45,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.tracingEngine = new TracingEngine<>(new SLFactory());
+        this.tracingEngine = new TracingEngine<>(new SLFactory(), this);
         this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(TracingEngine.CONS_NAME.toLowerCase()).build();
     }

@@ -117,12 +117,12 @@ public abstract class OrderBook<T extends ConditionOrder> implements WriteBytesM
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
         this.lastPrice = bytes.readDouble();
-        Map<Long, T> tmpOrders = Maps.newHashMap();
-        SerializationUtils.readLongMap(bytes, tmpOrders, bytesIn -> newOrder(bytesIn));
-        tmpOrders.values().forEach(t -> addOrder(t));
+        List<T> tmpOrders = Lists.newLinkedList();
+        SerializationUtils.readCollections(bytes, tmpOrders, bytesIn -> newOrder(bytesIn));
+        tmpOrders.forEach(t -> addOrder(t));
         tmpOrders.clear();
-        SerializationUtils.readLongMap(bytes, tmpOrders, bytesIn -> newOrder(bytesIn));
-        tmpOrders.values().forEach(t -> addPreOrder(t));
+        SerializationUtils.readCollections(bytes, tmpOrders, bytesIn -> newOrder(bytesIn));
+        tmpOrders.forEach(t -> addPreOrder(t));
         tmpOrders.clear();
     }
 
@@ -130,7 +130,7 @@ public abstract class OrderBook<T extends ConditionOrder> implements WriteBytesM
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeDouble(this.lastPrice);
-        SerializationUtils.writeLongMap(bytes, this.orders);
-        SerializationUtils.writeLongMap(bytes, this.preOrders);
+        SerializationUtils.writeCollections(bytes, this.orders.values());
+        SerializationUtils.writeCollections(bytes, this.preOrders.values());
     }
 }

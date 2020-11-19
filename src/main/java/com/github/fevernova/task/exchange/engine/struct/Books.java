@@ -151,7 +151,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        SerializationUtils.writeCollections(bytes, this.priceTree.values(), (bytesOut, orderArray) -> orderArray.writeMarshallable(bytesOut));
+        SerializationUtils.writeCollections(bytes, this.priceTree.values());
         bytes.writeLong(this.price);
     }
 }
