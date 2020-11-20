@@ -44,6 +44,7 @@ public class DTOrder extends ConditionOrder {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         byte version = byteBuffer.get();
         Validate.isTrue(version == 0);
+        super.commandType = OrderCommandType.of(byteBuffer.get());
         super.orderId = byteBuffer.getLong();
         super.orderType = OrderType.of(byteBuffer.get());
         super.userId = byteBuffer.getLong();

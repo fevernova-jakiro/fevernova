@@ -1,6 +1,7 @@
 package com.github.fevernova.task.markettracing;
 
 
+import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
 import com.github.fevernova.task.markettracing.data.order.DTOrder;
 import com.github.fevernova.task.markettracing.data.order.OrderType;
@@ -41,11 +42,12 @@ public class T_TracingEngine {
         CandleMessage cm3 = new CandleMessage(1, 1d, 3d, 1d, 3d, 3d, 3d, 3L, 0L, 3L);
         CandleMessage cm4 = new CandleMessage(1, 1d, 3d, 1d, 2d, 4d, 4d, 4L, 0L, 4L);
         this.slEngine.handleCandle(cm1);
-        this.slEngine.handleOrder(1, new SLOrder(1L, OrderType.UP, 1L, 1L, 3d));
+        this.slEngine.handleOrder(1, new SLOrder(OrderCommandType.PLACE_ORDER, 1L, OrderType.UP, 1L, 1L, 3d));
         this.slEngine.handleCandle(cm2);
         this.slEngine.handleCandle(cm3);
         this.slEngine.handleCandle(cm4);
     }
+
 
     @Test
     public void T_DT() {
@@ -55,7 +57,7 @@ public class T_TracingEngine {
         CandleMessage cm3 = new CandleMessage(1, 1d, 3d, 1d, 3d, 3d, 3d, 3L, 0L, 3L);
         CandleMessage cm4 = new CandleMessage(1, 1d, 3d, 1d, 2d, 4d, 4d, 4L, 0L, 4L);
         this.dtEngine.handleCandle(cm1);
-        this.dtEngine.handleOrder(1, new DTOrder(1L, OrderType.RETRACEMENT, 1L, 1L, 0d,1d));
+        this.dtEngine.handleOrder(1, new DTOrder(OrderCommandType.PLACE_ORDER, 1L, OrderType.RETRACEMENT, 1L, 1L, 0d, 1d));
         this.dtEngine.handleCandle(cm2);
         this.dtEngine.handleCandle(cm3);
         this.dtEngine.handleCandle(cm4);
