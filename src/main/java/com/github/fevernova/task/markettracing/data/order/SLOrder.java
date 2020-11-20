@@ -1,6 +1,7 @@
 package com.github.fevernova.task.markettracing.data.order;
 
 
+import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -18,9 +19,9 @@ public class SLOrder extends ConditionOrder {
     private Double triggerPrice;
 
 
-    public SLOrder(Long orderId, OrderType orderType, Long userId, Long timestamp, Double triggerPrice) {
+    public SLOrder(OrderCommandType commandType, Long orderId, OrderType orderType, Long userId, Long timestamp, Double triggerPrice) {
 
-        super(orderId, orderType, userId, timestamp);
+        super(commandType, orderId, orderType, userId, timestamp);
         this.triggerPrice = triggerPrice;
     }
 

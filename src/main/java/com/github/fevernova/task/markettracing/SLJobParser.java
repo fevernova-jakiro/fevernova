@@ -17,9 +17,9 @@ import com.github.fevernova.framework.service.state.StateService;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
+import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
 import com.github.fevernova.task.markettracing.data.TriggerResult;
-import com.github.fevernova.task.markettracing.data.order.OrderType;
 import com.github.fevernova.task.markettracing.data.order.SLOrder;
 import com.github.fevernova.task.markettracing.engine.TracingEngine;
 import com.github.fevernova.task.markettracing.engine.struct.SLFactory;
@@ -64,10 +64,12 @@ public class SLJobParser extends AbstractParser<Integer, TriggerResult> implemen
                 int pairCodeId = Ints.fromByteArray(kafkaData.getKey());
                 SLOrder order = new SLOrder();
                 order.from(kafkaData.getValue());
-                if (OrderType.HEARTBEAT == order.getOrderType()) {
+                if (OrderCommandType.HEARTBEAT == order.getCommandType()) {
                     this.tracingEngine.heartbeat(pairCodeId, order.getTimestamp());
-                } else {
+                } else if (OrderCommandType.PLACE_ORDER == order.getCommandType()) {
                     this.tracingEngine.handleOrder(pairCodeId, order);
+                } else {
+                    this.tracingEngine.cancelOrder(pairCodeId, order);
                 }
                 break;
             default:

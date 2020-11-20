@@ -82,6 +82,24 @@ public abstract class OrderBook<T extends ConditionOrder> implements WriteBytesM
     }
 
 
+    public boolean cancelPreOrder(long orderId) {
+
+        ConditionOrder conditionOrder = this.preOrders.remove(orderId);
+        if (conditionOrder == null) {
+            return false;
+        }
+        List<T> some = this.preOrdersTree.get(conditionOrder.getTimestamp());
+        for (Iterator<T> it = some.iterator(); it.hasNext(); ) {
+            T order = it.next();
+            if (orderId == order.getOrderId()) {
+                it.remove();
+                break;
+            }
+        }
+        return true;
+    }
+
+
     public void loadPreOrders(long timestamp) {
 
         final NavigableMap<Long, List<T>> moves = this.preOrdersTree.headMap(timestamp, false);
@@ -103,15 +121,15 @@ public abstract class OrderBook<T extends ConditionOrder> implements WriteBytesM
     public abstract List<T> newPrice(double newPrice);
 
 
+    protected abstract T newOrder(BytesIn bytes);
+
+
     protected void clear() {
 
         this.orders.clear();
         this.downTree.clear();
         this.upTree.clear();
     }
-
-
-    protected abstract T newOrder(BytesIn bytes);
 
 
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {

@@ -41,6 +41,9 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     @Override
     public boolean cancelOrder(long orderId) {
 
+        if (cancelPreOrder(orderId)) {
+            return true;
+        }
         DTOrder order = super.orders.remove(orderId);
         if (order != null) {
             if (OrderType.RETRACEMENT == order.getOrderType()) {

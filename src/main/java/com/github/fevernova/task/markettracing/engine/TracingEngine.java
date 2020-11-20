@@ -119,7 +119,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
     }
 
 
-    private void processMarket(Integer pairCodeId, Market market) {
+    private void processMarket(int pairCodeId, Market market) {
 
         List<Market> markets = getOrCreateMarkets(pairCodeId);
         markets.add(market);
@@ -130,8 +130,9 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
     }
 
 
-    public void handleOrder(Integer pairCodeId, E order) {
+    public void handleOrder(int pairCodeId, E order) {
 
+        sendResult(pairCodeId, order, TriggerResult.Status.PLACE);
         OrderBook<E> orderBook = getOrCreateOrderBook(pairCodeId);
         final Long lastTickerTime = this.lastTickerTimeMap.get(pairCodeId);
         if (Objects.nonNull(lastTickerTime) && order.getTimestamp() < lastTickerTime) {
@@ -152,17 +153,32 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
     }
 
 
-    private void sendResult(int pairCodeId, List<E> result) {
+    public void cancelOrder(int pairCodeId, E order) {
 
-        for (E e : result) {
-            TriggerResult tr = this.provider.feedOne(pairCodeId);
-            tr.from(pairCodeId, e);
-            this.provider.push();
+        OrderBook<E> orderBook = getOrCreateOrderBook(pairCodeId);
+        if (orderBook.cancelOrder(order.getOrderId())) {
+            sendResult(pairCodeId, order, TriggerResult.Status.CANCEL);
         }
     }
 
 
-    private List<Market> getOrCreateMarkets(Integer pairCodeId) {
+    private void sendResult(int pairCodeId, E order, TriggerResult.Status status) {
+
+        TriggerResult tr = this.provider.feedOne(pairCodeId);
+        tr.from(pairCodeId, order, status);
+        this.provider.push();
+    }
+
+
+    private void sendResult(int pairCodeId, List<E> orders) {
+
+        for (E e : orders) {
+            sendResult(pairCodeId, e, TriggerResult.Status.TRIGGER);
+        }
+    }
+
+
+    private List<Market> getOrCreateMarkets(int pairCodeId) {
 
         List<Market> markets = this.marketsCache.get(pairCodeId);
         if (Objects.isNull(markets)) {
@@ -173,7 +189,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
     }
 
 
-    private T getOrCreateOrderBook(Integer pairCodeId) {
+    private T getOrCreateOrderBook(int pairCodeId) {
 
         T orderBook = this.orderBookMap.get(pairCodeId);
         if (Objects.isNull(orderBook)) {
@@ -184,7 +200,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
     }
 
 
-    public void heartbeat(Integer pairCodeId, Long timestamp) {
+    public void heartbeat(int pairCodeId, long timestamp) {
 
         final List<Market> markets = getOrCreateMarkets(pairCodeId);
         final Iterator<Market> each = markets.iterator();

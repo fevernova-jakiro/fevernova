@@ -34,7 +34,7 @@ public class T_TracingEngine {
 
 
     @Test
-    public void T_market() {
+    public void T_SL() {
 
         CandleMessage cm1 = new CandleMessage(1, 1d, 1d, 1d, 1d, 1d, 1d, 1L, 0L, 1L);
         CandleMessage cm2 = new CandleMessage(1, 1d, 2d, 1d, 2d, 2d, 2d, 2L, 0L, 2L);
@@ -45,5 +45,19 @@ public class T_TracingEngine {
         this.slEngine.handleCandle(cm2);
         this.slEngine.handleCandle(cm3);
         this.slEngine.handleCandle(cm4);
+    }
+
+    @Test
+    public void T_DT() {
+
+        CandleMessage cm1 = new CandleMessage(1, 1d, 1d, 1d, 1d, 1d, 1d, 1L, 0L, 1L);
+        CandleMessage cm2 = new CandleMessage(1, 1d, 2d, 1d, 2d, 2d, 2d, 2L, 0L, 2L);
+        CandleMessage cm3 = new CandleMessage(1, 1d, 3d, 1d, 3d, 3d, 3d, 3L, 0L, 3L);
+        CandleMessage cm4 = new CandleMessage(1, 1d, 3d, 1d, 2d, 4d, 4d, 4L, 0L, 4L);
+        this.dtEngine.handleCandle(cm1);
+        this.dtEngine.handleOrder(1, new DTOrder(1L, OrderType.RETRACEMENT, 1L, 1L, 0d,1d));
+        this.dtEngine.handleCandle(cm2);
+        this.dtEngine.handleCandle(cm3);
+        this.dtEngine.handleCandle(cm4);
     }
 }

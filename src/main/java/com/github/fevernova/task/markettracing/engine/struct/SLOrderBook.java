@@ -30,6 +30,9 @@ public class SLOrderBook extends OrderBook<SLOrder> {
     @Override
     public boolean cancelOrder(long orderId) {
 
+        if (cancelPreOrder(orderId)) {
+            return true;
+        }
         final SLOrder order = super.orders.remove(orderId);
         if (order != null) {
             if (OrderType.DOWN == order.getOrderType()) {

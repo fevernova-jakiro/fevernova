@@ -3,7 +3,6 @@ package com.github.fevernova.task.markettracing.data.order;
 
 public enum OrderType {
 
-    HEARTBEAT(0),
     DOWN(1),
     UP(2),
     REBOUND(3),
@@ -21,8 +20,6 @@ public enum OrderType {
     public static OrderType of(int code) {
 
         switch (code) {
-            case 0:
-                return HEARTBEAT;
             case 1:
                 return DOWN;
             case 2:
