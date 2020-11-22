@@ -49,13 +49,10 @@ public class SLOrderBook extends OrderBook<SLOrder> {
     @Override
     public List<SLOrder> newPrice(double newPrice) {
 
-        List<SLOrder> result = new LinkedList<>();
-        if (super.lastPrice < newPrice) {
-            match(result, newPrice, super.upTree);
-        } else if (super.lastPrice > newPrice) {
-            match(result, newPrice, super.downTree);
-        }
         super.lastPrice = newPrice;
+        List<SLOrder> result = new LinkedList<>();
+        match(result, newPrice, super.upTree);
+        match(result, newPrice, super.downTree);
         return result;
     }
 
