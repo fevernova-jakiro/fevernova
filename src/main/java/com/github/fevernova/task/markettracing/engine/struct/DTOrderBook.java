@@ -62,7 +62,6 @@ public class DTOrderBook extends OrderBook<DTOrder> {
     @Override
     public List<DTOrder> newPrice(double newPrice) {
 
-        super.lastPrice = newPrice;
         List<DTOrder> result = new LinkedList<>();
         if (super.lastPrice < newPrice) {
             adjust(newPrice, this.highPriceTree, super.downTree);
@@ -71,6 +70,7 @@ public class DTOrderBook extends OrderBook<DTOrder> {
             adjust(newPrice, this.lowPriceTree, super.upTree);
             match(result, newPrice, this.highPriceTree, super.downTree);
         }
+        super.lastPrice = newPrice;
         return result;
     }
 
