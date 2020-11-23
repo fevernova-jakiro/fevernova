@@ -26,6 +26,7 @@ public class SLOrderBook extends OrderBook<SLOrder> {
         } else {
             add2TreeMap(order.getTriggerPrice(), order, super.upTree);
         }
+        this.hasNewOrder = true;
         return true;
     }
 
@@ -46,13 +47,6 @@ public class SLOrderBook extends OrderBook<SLOrder> {
             return true;
         }
         return false;
-    }
-
-
-    @Override public boolean loadPreOrders(long timestamp) {
-
-        this.hasNewOrder = super.loadPreOrders(timestamp);
-        return this.hasNewOrder;
     }
 
 
