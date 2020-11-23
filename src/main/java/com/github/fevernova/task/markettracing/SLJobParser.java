@@ -19,6 +19,7 @@ import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
+import com.github.fevernova.task.markettracing.data.SQTimeUtil;
 import com.github.fevernova.task.markettracing.data.TriggerResult;
 import com.github.fevernova.task.markettracing.data.order.SLOrder;
 import com.github.fevernova.task.markettracing.engine.TracingEngine;

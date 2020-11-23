@@ -38,6 +38,8 @@ public class CandleMessage implements WriteBytesMarshallable {
 
     private Long timestamp;
 
+    private Long tickerTime;
+
 
     public CandleMessage(BytesIn bytes) {
 
@@ -51,6 +53,7 @@ public class CandleMessage implements WriteBytesMarshallable {
         this.count = bytes.readLong();
         this.timeSequence = bytes.readLong();
         this.timestamp = bytes.readLong();
+        this.tickerTime = SQTimeUtil.toSequenceTime(getTimeSequence(), getTimestamp());
     }
 
 
@@ -69,6 +72,7 @@ public class CandleMessage implements WriteBytesMarshallable {
         this.count = byteBuffer.getLong();
         this.timeSequence = byteBuffer.getLong();
         this.timestamp = byteBuffer.getLong();
+        this.tickerTime = SQTimeUtil.toSequenceTime(getTimeSequence(), getTimestamp());
     }
 
 

@@ -5,7 +5,6 @@ import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
 import com.github.fevernova.task.markettracing.data.Market;
-import com.github.fevernova.task.markettracing.data.SQTimeUtil;
 import com.github.fevernova.task.markettracing.data.TriggerResult;
 import com.github.fevernova.task.markettracing.data.order.ConditionOrder;
 import com.github.fevernova.task.markettracing.engine.struct.Factory;
@@ -31,8 +30,6 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
     public static final String CONS_NAME = "TracingEngine";
 
     private Map<Integer, CandleMessage> candlesCache = Maps.newHashMap();
-
-    private Map<Integer, Long> lastTickerTimeMap = Maps.newHashMap();
 
     private Map<Integer, List<Market>> marketsCache = Maps.newHashMap();
 
@@ -70,8 +67,6 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
     private void onFirst(CandleMessage candle) {
 
-        final Long lastTickerTime = SQTimeUtil.toSequenceTime(candle.getTimeSequence(), candle.getTimestamp());
-        this.lastTickerTimeMap.put(candle.getPairCodeId(), lastTickerTime);
         if (candle.getCount() == 0) {
             return;
         }
@@ -81,14 +76,12 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         } else {
             tickers = tracker(candle.getOpen(), candle.getHigh(), candle.getLow(), candle.getClose());
         }
-        processMarket(candle.getPairCodeId(), Market.builder().tickers(tickers).timestamp(lastTickerTime).build());
+        processMarket(candle.getPairCodeId(), Market.builder().tickers(tickers).timestamp(candle.getTickerTime()).build());
     }
 
 
     private void onChange(CandleMessage oldCandle, CandleMessage newCandle) {
 
-        final Long lastTickerTime = SQTimeUtil.toSequenceTime(newCandle.getTimeSequence(), newCandle.getTimestamp());
-        this.lastTickerTimeMap.put(newCandle.getPairCodeId(), lastTickerTime);
         if (oldCandle.getCount() >= newCandle.getCount()) {
             return;
         }
@@ -100,7 +93,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         } else {
             tickers = tracker(nHigh, nLow, newCandle.getClose());
         }
-        processMarket(newCandle.getPairCodeId(), Market.builder().tickers(tickers).timestamp(lastTickerTime).build());
+        processMarket(newCandle.getPairCodeId(), Market.builder().tickers(tickers).timestamp(newCandle.getTickerTime()).build());
     }
 
 
@@ -134,7 +127,7 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
         sendResult(pairCodeId, order, TriggerResult.Status.PLACE);
         OrderBook<E> orderBook = getOrCreateOrderBook(pairCodeId);
-        final Long lastTickerTime = this.lastTickerTimeMap.get(pairCodeId);
+        final Long lastTickerTime = this.candlesCache.get(pairCodeId).getTickerTime();
         if (Objects.nonNull(lastTickerTime) && order.getTimestamp() < lastTickerTime) {
             final List<Market> markets = getOrCreateMarkets(pairCodeId);
             final T tmp = this.factory.create();
@@ -218,7 +211,6 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
         Validate.isTrue(bytes.readInt() == 0);
         SerializationUtils.readIntMap(bytes, this.candlesCache, bytesIn -> new CandleMessage(bytesIn));
-        SerializationUtils.readIntMap(bytes, this.lastTickerTimeMap, bytesIn -> bytesIn.readLong());
         SerializationUtils.readIntMap(bytes, this.marketsCache, bytesIn -> {
 
             List<Market> result = Lists.newLinkedList();
@@ -238,7 +230,6 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
         bytes.writeInt(0);
         SerializationUtils.writeIntMap(bytes, this.candlesCache);
-        SerializationUtils.writeIntMap(bytes, this.lastTickerTimeMap, (bytesOut, v) -> bytesOut.writeLong(v));
         SerializationUtils.writeIntMap(bytes, this.marketsCache, (bytesOut, markets) -> SerializationUtils.writeCollections(bytesOut, markets));
         SerializationUtils.writeIntMap(bytes, this.orderBookMap);
     }
