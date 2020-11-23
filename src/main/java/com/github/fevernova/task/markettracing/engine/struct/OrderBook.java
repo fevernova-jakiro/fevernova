@@ -100,9 +100,12 @@ public abstract class OrderBook<T extends ConditionOrder> implements WriteBytesM
     }
 
 
-    public void loadPreOrders(long timestamp) {
+    public boolean loadPreOrders(long timestamp) {
 
         final NavigableMap<Long, List<T>> moves = this.preOrdersTree.headMap(timestamp, false);
+        if (moves.isEmpty()) {
+            return false;
+        }
         final Iterator<Map.Entry<Long, List<T>>> iterator = moves.entrySet().iterator();
         while (iterator.hasNext()) {
             iterator.next().getValue().forEach(e -> {
@@ -111,6 +114,7 @@ public abstract class OrderBook<T extends ConditionOrder> implements WriteBytesM
             });
             iterator.remove();
         }
+        return true;
     }
 
 

@@ -11,6 +11,9 @@ import java.util.*;
 public class SLOrderBook extends OrderBook<SLOrder> {
 
 
+    private boolean hasNewOrder = false;
+
+
     @Override
     public boolean addOrder(SLOrder order) {
 
@@ -46,13 +49,29 @@ public class SLOrderBook extends OrderBook<SLOrder> {
     }
 
 
+    @Override public boolean loadPreOrders(long timestamp) {
+
+        this.hasNewOrder = super.loadPreOrders(timestamp);
+        return this.hasNewOrder;
+    }
+
+
     @Override
     public List<SLOrder> newPrice(double newPrice) {
 
         super.lastPrice = newPrice;
         List<SLOrder> result = new LinkedList<>();
-        match(result, newPrice, super.upTree);
-        match(result, newPrice, super.downTree);
+        if (this.hasNewOrder) {
+            match(result, newPrice, super.upTree);
+            match(result, newPrice, super.downTree);
+            this.hasNewOrder = false;
+        } else {
+            if (super.lastPrice < newPrice) {
+                match(result, newPrice, super.upTree);
+            } else if (super.lastPrice > newPrice) {
+                match(result, newPrice, super.downTree);
+            }
+        }
         return result;
     }
 
