@@ -61,7 +61,7 @@ public class DTJobParser extends AbstractParser<Integer, TriggerResult> implemen
                 candle.from(kafkaData.getValue());
                 this.tracingEngine.handleCandle(candle);
                 break;
-            case "dt_condition_order":
+            case "dt-condition-order":
                 int pairCodeId = Ints.fromByteArray(kafkaData.getKey());
                 DTOrder order = new DTOrder();
                 order.from(kafkaData.getValue());

@@ -4,6 +4,7 @@ package com.github.fevernova.task.markettracing.data.order;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import org.apache.commons.lang3.Validate;
@@ -13,6 +14,7 @@ import java.nio.ByteBuffer;
 
 @Getter
 @NoArgsConstructor
+@ToString(callSuper = true)
 public class SLOrder extends ConditionOrder {
 
 

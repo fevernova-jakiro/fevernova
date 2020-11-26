@@ -61,7 +61,7 @@ public class SLJobParser extends AbstractParser<Integer, TriggerResult> implemen
                 candle.from(kafkaData.getValue());
                 this.tracingEngine.handleCandle(candle);
                 break;
-            case "sl_condition_order":
+            case "sl-condition-order":
                 int pairCodeId = Ints.fromByteArray(kafkaData.getKey());
                 SLOrder order = new SLOrder();
                 order.from(kafkaData.getValue());

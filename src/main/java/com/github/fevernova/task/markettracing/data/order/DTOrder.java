@@ -5,6 +5,7 @@ import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import org.apache.commons.lang3.Validate;
@@ -14,6 +15,7 @@ import java.nio.ByteBuffer;
 
 @Getter
 @NoArgsConstructor
+@ToString(callSuper = true)
 public class DTOrder extends ConditionOrder {
 
 
@@ -49,7 +51,6 @@ public class DTOrder extends ConditionOrder {
         super.orderType = OrderType.of(byteBuffer.get());
         super.userId = byteBuffer.getLong();
         super.timestamp = byteBuffer.getLong();
-        this.polarPrice = byteBuffer.getDouble();
         this.deltaPrice = byteBuffer.getDouble();
     }
 

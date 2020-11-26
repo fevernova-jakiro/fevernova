@@ -1,6 +1,7 @@
 package com.github.fevernova.task.markettracing.engine;
 
 
+import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import com.github.fevernova.task.markettracing.data.CandleMessage;
@@ -160,6 +161,9 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
         TriggerResult tr = this.provider.feedOne(pairCodeId);
         tr.from(pairCodeId, order, status);
         this.provider.push();
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(order.toString());
+        }
     }
 
 

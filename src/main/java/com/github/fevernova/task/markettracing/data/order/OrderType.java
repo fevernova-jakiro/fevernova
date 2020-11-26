@@ -3,10 +3,10 @@ package com.github.fevernova.task.markettracing.data.order;
 
 public enum OrderType {
 
-    DOWN(1),
-    UP(2),
-    REBOUND(3),
-    RETRACEMENT(4);
+    RETRACEMENT(0),
+    REBOUND(1),
+    DOWN(2),
+    UP(3);
 
     public byte code;
 
@@ -20,14 +20,14 @@ public enum OrderType {
     public static OrderType of(int code) {
 
         switch (code) {
-            case 1:
-                return DOWN;
-            case 2:
-                return UP;
-            case 3:
-                return REBOUND;
-            case 4:
+            case 0:
                 return RETRACEMENT;
+            case 1:
+                return REBOUND;
+            case 2:
+                return DOWN;
+            case 3:
+                return UP;
             default:
                 throw new IllegalArgumentException("unknown OrderType:" + code);
         }
