@@ -81,6 +81,6 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(0);
-        SerializationUtils.writeIntMap(this.data, bytes);
+        SerializationUtils.writeIntMap(bytes, this.data);
     }
 }

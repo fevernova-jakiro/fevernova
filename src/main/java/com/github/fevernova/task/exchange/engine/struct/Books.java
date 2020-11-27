@@ -8,6 +8,7 @@ import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderArray;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
+import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
@@ -150,8 +151,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        bytes.writeInt(this.priceTree.size());
-        this.priceTree.values().forEach(orderArray -> orderArray.writeMarshallable(bytes));
+        SerializationUtils.writeCollections(bytes, this.priceTree.values());
         bytes.writeLong(this.price);
     }
 }

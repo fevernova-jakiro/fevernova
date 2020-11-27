@@ -42,7 +42,8 @@ public final class OrderBooks implements WriteBytesMarshallable {
     @Setter
     private long lastMatchPrice = 0L;
 
-    private boolean scanCondition = false;
+    @Setter
+    private static boolean scanCondition = false;
 
 
     public OrderBooks(int symbolId) {

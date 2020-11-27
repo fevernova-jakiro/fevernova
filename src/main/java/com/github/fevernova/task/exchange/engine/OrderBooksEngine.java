@@ -105,6 +105,6 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(0);
-        SerializationUtils.writeIntMap(this.symbols, bytes);
+        SerializationUtils.writeIntMap(bytes, this.symbols);
     }
 }
