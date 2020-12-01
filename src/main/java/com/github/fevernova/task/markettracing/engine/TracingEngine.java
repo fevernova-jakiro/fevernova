@@ -131,7 +131,8 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
         sendResult(pairCodeId, order, TriggerResult.Status.PLACE);
         OrderBook<E> orderBook = getOrCreateOrderBook(pairCodeId);
-        final Long lastTickerTime = this.candlesCache.get(pairCodeId).getTickerTime();
+        CandleMessage tmpCM = this.candlesCache.get(pairCodeId);
+        final Long lastTickerTime = tmpCM != null ? tmpCM.getTickerTime() : null;
         if (Objects.nonNull(lastTickerTime) && order.getTimestamp() < lastTickerTime) {
             final List<Market> markets = getOrCreateMarkets(pairCodeId);
             final T tmp = this.factory.create();
