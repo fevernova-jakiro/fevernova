@@ -50,6 +50,9 @@ public class TracingEngine<T extends OrderBook<E>, E extends ConditionOrder> imp
 
     public void handleCandle(CandleMessage newCandle) {
 
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(newCandle.toString());
+        }
         CandleMessage oldCandle = this.candlesCache.put(newCandle.getPairCodeId(), newCandle);
         if (oldCandle == null) {
             onFirst(newCandle);
